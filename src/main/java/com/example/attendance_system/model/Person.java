@@ -1,5 +1,6 @@
 package com.example.attendance_system.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -12,9 +13,10 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class Person {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @JsonIgnore
     @OneToOne(mappedBy = "person")
     private User user;
 

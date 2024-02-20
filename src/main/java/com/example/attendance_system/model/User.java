@@ -1,5 +1,6 @@
 package com.example.attendance_system.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -37,7 +38,7 @@ public class User implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singletonList(new SimpleGrantedAuthority(role.name()));
+        return Collections.singletonList(role.getAuthority());
     }
 
     @Override

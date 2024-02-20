@@ -1,10 +1,8 @@
 package com.example.attendance_system.config;
 
-import com.example.attendance_system.model.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -12,8 +10,8 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import static com.example.attendance_system.model.Role.*;
 import static org.springframework.http.HttpMethod.GET;
-import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
 @Configuration
@@ -23,8 +21,11 @@ public class SecurityConfiguration {
 
     private final JwtAuthFilter jwtAuthFilter;
     private final AuthenticationProvider authenticationProvider;
-    private static final String[] WHITE_LIST_URL = {"/api/v1/auth/**"};
-    private static final String[] MANAGEMENT_LIST_URL = {"/api/v1/management/**"};
+    private static final String[] AUTH_WHITE_LIST_URL = {"/api/v1/auth/**"};
+    private static final String[] ADMIN_WHITE_LIST_URL = {"/api/v1/admin/**"};
+    private static final String[] STUDENT_WHITE_LIST_URL = {"/api/v1/student/**"};
+    private static final String[] TEACHER_WHITE_LIST_URL = {"/api/v1/teacher/**"};
+
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -32,16 +33,13 @@ public class SecurityConfiguration {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(req ->
                         req
-//                                .requestMatchers(GET, MANAGEMENT_LIST_URL)
-//                                .hasAnyRole(Role.STUDENT.name(), Role.TEACHER.name(), Role.ADMIN.name())
-//                                .requestMatchers(POST, MANAGEMENT_LIST_URL)
-//                                .hasAnyRole(Role.ADMIN.name())
-//                                .requestMatchers(WHITE_LIST_URL)
-//                                .permitAll()
-//                                .anyRequest()
-//                                .authenticated()
-                                .anyRequest()
+                                .requestMatchers(AUTH_WHITE_LIST_URL)
                                 .permitAll()
+                                .requestMatchers(ADMIN_WHITE_LIST_URL).hasRole(ADMIN.name())
+                                .requestMatchers(STUDENT_WHITE_LIST_URL).hasRole(STUDENT.name())
+                                .requestMatchers(TEACHER_WHITE_LIST_URL).hasRole(TEACHER.name())
+                                .anyRequest()
+                                .authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
                 .authenticationProvider(authenticationProvider)
