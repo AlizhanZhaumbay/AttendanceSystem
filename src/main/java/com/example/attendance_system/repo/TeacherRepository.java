@@ -10,7 +10,9 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, Integer> {
+public interface TeacherRepository extends JpaRepository<User, Integer> {
 
-    Optional<User> findByLogin(String login);
+    @Query("select p from Person p join User t on p.id = t.person.id " +
+            "where t.role = 'TEACHER'")
+    Optional<List<Person>> findAllTeachers();
 }
