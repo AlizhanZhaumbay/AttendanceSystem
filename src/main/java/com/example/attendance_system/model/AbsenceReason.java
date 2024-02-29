@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 public class AbsenceReason {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @OneToOne

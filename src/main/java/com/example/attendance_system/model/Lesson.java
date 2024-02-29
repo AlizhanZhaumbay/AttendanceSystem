@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 @Data
@@ -18,7 +19,7 @@ import java.util.List;
 public class Lesson {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.EAGER)
@@ -30,11 +31,11 @@ public class Lesson {
 
     @Column(name = "start_time")
     @DateTimeFormat(pattern = "HH:mm")
-    private LocalDateTime startTime;
+    private LocalTime startTime;
 
     @Column(name = "end_time")
     @DateTimeFormat(pattern = "HH:mm")
-    private LocalDateTime endTime;
+    private LocalTime endTime;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "enroll",
