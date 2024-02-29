@@ -6,7 +6,9 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
-@Data
+
+@Getter
+@Setter
 @Entity
 @Table(name = "person")
 @AllArgsConstructor
@@ -16,9 +18,9 @@ public class Person {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @JsonIgnore
-    @OneToOne(mappedBy = "person")
-    private User user;
+//    @JsonIgnore
+//    @OneToOne(mappedBy = "person")
+//    private User user;
 
     private String name;
 
