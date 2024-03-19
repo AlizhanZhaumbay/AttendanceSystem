@@ -2,12 +2,12 @@ package com.example.attendance_system.controller;
 
 import com.example.attendance_system.model.Course;
 import com.example.attendance_system.dto.PersonDto;
-import com.example.attendance_system.repo.CourseRepository;
 import com.example.attendance_system.service.AdminService;
+import com.example.attendance_system.service.CourseService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,11 +19,10 @@ import java.util.Optional;
 public class AdminController {
 
     private final AdminService adminService;
-    private final CourseRepository courseRepository;
+//    private final CourseService courseService;
 
     @GetMapping("/students")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<PersonDto>> getAllStudents(){
+    public ResponseEntity<List<PersonDto>> getAllStudents() {
         return ResponseEntity.ok(adminService.getAllStudents());
     }
 
@@ -35,15 +34,14 @@ public class AdminController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/teachers")
-    public ResponseEntity<List<PersonDto>> getAllTeachers(){
+    public ResponseEntity<List<PersonDto>> getAllTeachers() {
         return ResponseEntity.ok(adminService.getAllTeachers());
     }
 
     @GetMapping("/teachers/{teacher_id}")
     public ResponseEntity<PersonDto> getOneTeacher(@PathVariable("teacher_id")
-                                                Integer teacherId) {
+                                                   Integer teacherId) {
         Optional<PersonDto> optionalTeacher = adminService.getTeacherById(teacherId);
         return optionalTeacher
                 .map(ResponseEntity::ok)
@@ -51,9 +49,8 @@ public class AdminController {
     }
 
 
-    @GetMapping("/courses")
-    public ResponseEntity<List<Course>> getAllCourses(){
-        return ResponseEntity.ok(courseRepository.findAll());
-    }
+
+
+
 
 }

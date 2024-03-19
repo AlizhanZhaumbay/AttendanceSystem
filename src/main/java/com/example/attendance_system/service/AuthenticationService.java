@@ -3,6 +3,7 @@ package com.example.attendance_system.service;
 import com.example.attendance_system.auth.AuthenticationRequest;
 import com.example.attendance_system.auth.AuthenticationResponse;
 import com.example.attendance_system.auth.RegisterRequest;
+import com.example.attendance_system.model.Person;
 import com.example.attendance_system.model.Token;
 import com.example.attendance_system.model.TokenType;
 import com.example.attendance_system.model.User;
@@ -15,10 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -26,7 +24,7 @@ import java.io.IOException;
 @Service
 @RequiredArgsConstructor
 public class AuthenticationService {
-    private final UserRepository repository;
+    private final UserRepository userRepository;
     private final TokenRepository tokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
@@ -37,10 +35,12 @@ public class AuthenticationService {
                 .login(request.login())
                 .password(passwordEncoder.encode(request.password()))
                 .role(request.role())
+                .person(userRepository.getPersonById(request.personId()))
                 .build();
-        var savedUser = repository.save(user);
+        var savedUser = userRepository.save(user);
         var jwtToken = jwtService.generateToken(user);
         var refreshToken = jwtService.generateRefreshToken(user);
+
         saveUserToken(savedUser, jwtToken);
         return AuthenticationResponse.builder()
                 .accessToken(jwtToken)
@@ -55,7 +55,7 @@ public class AuthenticationService {
                         request.password()
                 )
         );
-        var user = repository.findByLogin(request.login())
+        var user = userRepository.findByLogin(request.login())
                 .orElseThrow();
         var jwtToken = jwtService.generateToken(user);
         var refreshToken = jwtService.generateRefreshToken(user);
@@ -64,6 +64,8 @@ public class AuthenticationService {
         return AuthenticationResponse.builder()
                 .accessToken(jwtToken)
                 .refreshToken(refreshToken)
+                .login(user.getLogin())
+                .role(user.getRole())
                 .build();
     }
 
@@ -102,7 +104,7 @@ public class AuthenticationService {
         refreshToken = authHeader.substring(7);
         userLogin = jwtService.extractUsername(refreshToken);
         if (userLogin != null) {
-            var user = repository.findByLogin(userLogin)
+            var user = userRepository.findByLogin(userLogin)
                     .orElseThrow();
             if (jwtService.isTokenValid(refreshToken, user)) {
                 var accessToken = jwtService.generateToken(user);
