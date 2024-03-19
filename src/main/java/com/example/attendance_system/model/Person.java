@@ -4,11 +4,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 
-@Getter
-@Setter
+@Data
 @Entity
 @Table(name = "person")
 @AllArgsConstructor
@@ -26,7 +26,7 @@ public class Person {
 
     private String surname;
 
-    private LocalDateTime birthDate;
+    private LocalDate birthDate;
 
     private String email;
 }
