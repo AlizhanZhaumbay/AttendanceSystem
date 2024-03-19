@@ -30,4 +30,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     @Query("select p from Person p join User s on p.id = s.person.id and s.id =:teacherId")
     Optional<Person> findTeacherById(@Param("teacherId") Integer teacherId);
+
+    @Query("select p from Person p where p.id =:id")
+    Person getPersonById(Integer id);
 }

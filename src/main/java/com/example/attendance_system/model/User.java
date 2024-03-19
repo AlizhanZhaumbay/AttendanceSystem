@@ -20,7 +20,8 @@ import java.util.Collections;
 public class User implements UserDetails {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_seq")
+    @SequenceGenerator(name = "user_seq", sequenceName = "_user_seq", initialValue = 1, allocationSize = 1)
     private Integer id;
 
     private String login;

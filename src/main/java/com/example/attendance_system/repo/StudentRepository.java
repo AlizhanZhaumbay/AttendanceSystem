@@ -13,10 +13,5 @@ import java.util.Optional;
 
 @Repository
 public interface StudentRepository extends JpaRepository<User, Integer> {
-    @Query("select p from Person p join User s on p.id = s.person.id " +
-            "where s.role = 'STUDENT'")
-    Optional<List<Person>> findAllStudents();
 
-    @Query("select p from Person p join User s on p.id = s.person.id and s.id =: studentId")
-    Optional<Person> findStudentById(@Param("studentId") Integer studentId);
 }
