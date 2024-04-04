@@ -14,10 +14,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class AdminService {
-
-//    private final StudentRepository studentRepository;
-//    private final TeacherRepository teacherRepository;
+public class UserService {
 
     private final UserRepository userRepository;
     public List<PersonDto> getAllStudents() {

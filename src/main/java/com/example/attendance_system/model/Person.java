@@ -18,10 +18,6 @@ public class Person {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-//    @JsonIgnore
-//    @OneToOne(mappedBy = "person")
-//    private User user;
-
     private String name;
 
     private String surname;
