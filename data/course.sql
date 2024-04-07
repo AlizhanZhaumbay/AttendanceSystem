@@ -1,0 +1,17 @@
+insert into public.course (id, code, name, total_hours)
+values  (1, 'CSS 228', 'Advanced Algorithmic Design and Analysis', 45),
+        (2, 'CSS 342', 'Software engineering', 45),
+        (3, 'CSS 381', 'Industrial practice 2', 15),
+        (4, 'CSS 377', 'Cross Platform Mobile Development', 60),
+        (5, 'INF 423', 'Statistics and Visualization for Data Analysis', 45),
+        (6, 'INF 368', 'The Go programming language', 60),
+        (7, 'MDE 153', 'Module of Social and Political Knowledge (Cultural Studies)', 15),
+        (8, 'CSS 384', 'Advanced Android Programming', 45),
+        (9, 'CSS 217', 'Software Architecture and Design Patterns', 45),
+        (10, 'CSS 306', 'Cyber Security', 45),
+        (11, 'CSS 350', 'Cloud Computing', 45),
+        (12, 'MDE 112', 'Kazakh Language 2 (А2 level/for foreigners)', 45),
+        (13, 'INF 337', 'Deep Learning', 45),
+        (14, 'MDE 172', 'Philosophy', 45),
+        (15, 'MDE 154', 'Module of Social and Political Knowledge (Psychology)', 15),
+        (16, 'MDE 116', 'Kazakh Language 2 (B2 level)', 45);

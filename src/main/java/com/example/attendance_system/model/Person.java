@@ -18,6 +18,9 @@ public class Person {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @OneToOne(mappedBy = "person")
+    private User user;
+
     private String name;
 
     private String surname;
@@ -25,4 +28,9 @@ public class Person {
     private LocalDate birthDate;
 
     private String email;
+
+
+    public Integer getUserId(){
+        return user.getId();
+    }
 }
