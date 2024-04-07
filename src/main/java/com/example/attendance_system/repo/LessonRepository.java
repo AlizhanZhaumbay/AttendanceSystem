@@ -23,4 +23,8 @@ public interface LessonRepository extends JpaRepository<Lesson, Integer> {
 
     @Query("select l from Lesson l where l.course.id=:courseId and l.id=:lessonId")
     Optional<Lesson> findByCourseAndId(Integer courseId, Integer lessonId);
+
+    @Query(value = "SELECT EXISTS (SELECT 1 FROM lesson WHERE id=:lessonId AND " +
+            "teacher_id=:teacherId) as attendance_exists", nativeQuery = true)
+    boolean hasTeacherLesson(Integer lessonId, Integer teacherId);
 }

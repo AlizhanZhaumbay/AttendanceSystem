@@ -33,4 +33,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     @Query("select p from Person p where p.id =:id")
     Person getPersonById(Integer id);
+
+    @Query(value = "select id from _user where person_id=:personId", nativeQuery = true)
+    Integer getUserIdFromPerson(Long personId);
 }

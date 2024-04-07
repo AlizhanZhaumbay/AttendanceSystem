@@ -1,25 +1,24 @@
 package com.example.attendance_system.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 
 @Data
 @Entity
 @Table(name = "person")
 @AllArgsConstructor
+@Builder
 @NoArgsConstructor
 public class Person {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(mappedBy = "person")
-    private User user;
+    @Transient
+    private Integer userId;
 
     private String name;
 
@@ -28,9 +27,4 @@ public class Person {
     private LocalDate birthDate;
 
     private String email;
-
-
-    public Integer getUserId(){
-        return user.getId();
-    }
 }

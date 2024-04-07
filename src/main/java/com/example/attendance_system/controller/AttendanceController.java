@@ -1,5 +1,7 @@
 package com.example.attendance_system.controller;
 
+import com.example.attendance_system.dto.AttendanceDto;
+import com.example.attendance_system.model.Attendance;
 import com.example.attendance_system.service.AttendanceService;
 import com.google.zxing.WriterException;
 import jakarta.servlet.http.HttpServletResponse;
@@ -10,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.List;
 
 
 @RestController
@@ -35,5 +38,15 @@ public class AttendanceController {
             return new ResponseEntity<>("Invalid access token", HttpStatus.FORBIDDEN);
         Integer attendanceId = attendanceService.takeByQr(accessToken);
         return new ResponseEntity<>(String.valueOf(attendanceId), HttpStatus.OK);
+    }
+
+    @GetMapping("/teacher/attendance/{lesson_id}")
+    public ResponseEntity<List<AttendanceDto>> getAttendancesByLessonForTeacher(@PathVariable("lesson_id") Integer lessonId){
+        return ResponseEntity.ok(attendanceService.getAttendancesByLessonForTeacher(lessonId));
+    }
+
+    @GetMapping("/admin/attendance/{lesson_id}")
+    public ResponseEntity<List<AttendanceDto>> getAttendancesByLessonForAdmin(@PathVariable("lesson_id") Integer lessonId){
+        return ResponseEntity.ok(attendanceService.getAttendancesByLesson(lessonId));
     }
 }

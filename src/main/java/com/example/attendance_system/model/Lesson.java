@@ -8,7 +8,9 @@ import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalTime;
 import java.util.List;
 
-@Data
+@Getter
+@Setter
+@Builder
 @Entity
 @Table(name = "lesson")
 @AllArgsConstructor
