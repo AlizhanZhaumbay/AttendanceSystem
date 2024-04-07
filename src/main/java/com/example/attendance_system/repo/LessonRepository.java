@@ -21,9 +21,6 @@ public interface LessonRepository extends JpaRepository<Lesson, Integer> {
     @Query("select l from Lesson l where l.course.id=:courseId and l.teacher.id=:teacherId")
     List<Lesson> findByTeacher(Integer courseId, Integer teacherId);
 
-//    @Query(nativeQuery = true, value = "select * from lesson where l.course_id=:courseId and teacher_id=:teacherId")
-//    List<Lesson> findByTeacher(Integer courseId, Integer teacherId);
-
     @Query("select l from Lesson l where l.course.id=:courseId and l.id=:lessonId")
     Optional<Lesson> findByCourseAndId(Integer courseId, Integer lessonId);
 }
