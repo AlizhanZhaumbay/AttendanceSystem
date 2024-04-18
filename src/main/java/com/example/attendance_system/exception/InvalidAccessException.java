@@ -5,6 +5,6 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Getter
-public class UserNotFoundException extends RuntimeException {
+public class InvalidAccessException extends RuntimeException {
     private final String message;
 }

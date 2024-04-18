@@ -16,6 +16,7 @@ import java.util.Collections;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Data
 @Table(name = "_user")
 public class User implements UserDetails {
 

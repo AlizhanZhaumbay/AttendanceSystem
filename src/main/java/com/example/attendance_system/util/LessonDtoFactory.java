@@ -1,5 +1,6 @@
-package com.example.attendance_system.dto;
+package com.example.attendance_system.util;
 
+import com.example.attendance_system.dto.LessonDto;
 import com.example.attendance_system.model.Lesson;
 import com.example.attendance_system.model.Person;
 

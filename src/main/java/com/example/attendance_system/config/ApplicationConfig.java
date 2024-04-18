@@ -2,6 +2,7 @@ package com.example.attendance_system.config;
 
 import com.example.attendance_system.exception.UserNotFoundException;
 import com.example.attendance_system.repo.UserRepository;
+import com.example.attendance_system.util.ExceptionMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,7 +22,7 @@ public class ApplicationConfig {
     @Bean
     public UserDetailsService userDetailsService(){
         return username -> userRepository.findByLogin(username)
-                .orElseThrow(UserNotFoundException::new);
+                .orElseThrow(() -> new UserNotFoundException(ExceptionMessage.userLoginNotFound(username)));
     }
 
     @Bean

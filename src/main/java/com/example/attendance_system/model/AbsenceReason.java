@@ -16,9 +16,8 @@ public class AbsenceReason {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
-    @JoinColumn(name = "attendance_id")
-    private Attendance attendanceRecord;
+    @OneToOne(mappedBy = "absenceReason")
+    private AttendanceRecord attendanceRecord;
 
     private String description;
 

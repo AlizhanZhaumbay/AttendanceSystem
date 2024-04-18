@@ -1,13 +1,10 @@
 package com.example.attendance_system.auth;
 
-import com.example.attendance_system.service.AuthenticationService;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
 import java.util.List;
 
 @CrossOrigin
@@ -24,15 +21,6 @@ public class AuthenticationController {
     ) {
         return ResponseEntity.ok(authenticationService.register(request));
     }
-
-    @PostMapping("/registerAll")
-    public ResponseEntity<Integer> registerAll(
-            @RequestBody List<RegisterRequest> registerRequestList
-    ){
-        registerRequestList.forEach(authenticationService::register);
-        return ResponseEntity.ok(registerRequestList.size());
-    }
-
     @PostMapping("/login")
     public ResponseEntity<AuthenticationResponse> authenticate(
             @RequestBody AuthenticationRequest authenticationRequest
@@ -41,10 +29,9 @@ public class AuthenticationController {
     }
 
     @PostMapping("/refresh-token")
-    public void refreshToken(
-            HttpServletRequest request,
-            HttpServletResponse response
-    ) throws IOException {
-        authenticationService.refreshToken(request, response);
+    public ResponseEntity<AuthenticationResponse> refreshToken(
+            HttpServletRequest request
+    ) {
+        return ResponseEntity.ok(authenticationService.refreshToken(request));
     }
 }

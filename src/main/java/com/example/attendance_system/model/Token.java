@@ -1,29 +1,28 @@
 package com.example.attendance_system.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Token {
     @Id
     @GeneratedValue
-    public Integer id;
+    Integer id;
     @Column(unique = true)
-    public String token;
+    String token;
     @Enumerated(EnumType.STRING)
-    public TokenType tokenType = TokenType.BEARER;
-    public boolean revoked;
+    TokenType tokenType = TokenType.BEARER;
+    boolean revoked;
 
-    public boolean expired;
+    boolean expired;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
-    public User user;
+    User user;
 }

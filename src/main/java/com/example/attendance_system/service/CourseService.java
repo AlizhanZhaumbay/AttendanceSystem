@@ -1,47 +1,97 @@
 package com.example.attendance_system.service;
 
+import com.example.attendance_system.dto.CourseDto;
+import com.example.attendance_system.exception.InvalidAccessException;
+import com.example.attendance_system.util.CourseDtoFactory;
 import com.example.attendance_system.exception.CourseNotFoundException;
 import com.example.attendance_system.model.Course;
 import com.example.attendance_system.model.User;
 import com.example.attendance_system.repo.CourseRepository;
+import com.example.attendance_system.util.ExceptionMessage;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static com.example.attendance_system.util.ExceptionMessage.STUDENT_DOES_NOT_HAVE_COURSE;
+import static com.example.attendance_system.util.ExceptionMessage.TEACHER_DOES_NOT_HAVE_COURSE;
 
 @Service
 @RequiredArgsConstructor
 public class CourseService {
 
     private final CourseRepository courseRepository;
+    private final UserService userService;
 
-    public List<Course> getCourses() {
-        return courseRepository.findAll();
+    public List<CourseDto> getCourses() {
+        return courseRepository.findAll()
+                .stream()
+                .map(CourseDtoFactory::mapToDto)
+                .toList();
     }
 
-    public Course getCourseById(Integer courseId) {
+    public CourseDto getCourseById(Integer courseId) {
+        checkCourseExists(courseId);
         Optional<Course> optionalCourse = courseRepository.findById(courseId);
 
-        return optionalCourse.orElseThrow(CourseNotFoundException::new);
+        return CourseDtoFactory.mapToDto(optionalCourse.get());
     }
 
-    public List<Course> getCoursesByStudent(Integer studentId){
-        return courseRepository.findByStudentId(studentId);
+    public List<CourseDto> getCoursesByStudent(Integer studentId){
+        userService.checkStudentExists(studentId);
+        return courseRepository.findByStudentId(studentId)
+                .stream()
+                .map(CourseDtoFactory::mapToDto)
+                .toList();
     }
 
-    public List<Course> getCoursesByStudent(){
-        User student = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return courseRepository.findByStudentId(student.getId());
+    public List<CourseDto> getCoursesByCurrentStudent(){
+        User student = userService.getCurrentUser();
+        return courseRepository.findByStudentId(student.getId())
+                .stream()
+                .map(CourseDtoFactory::mapToDto)
+                .toList();
     }
 
-    public List<Course> getCoursesByTeacher(Integer teacherId){
-        return courseRepository.findByTeacherId(teacherId);
+    public List<CourseDto> getCoursesByTeacher(Integer teacherId){
+        userService.checkTeacherExists(teacherId);
+        return courseRepository.findByTeacherId(teacherId)
+                .stream()
+                .map(CourseDtoFactory::mapToDto)
+                .toList();
     }
 
-    public List<Course> getCoursesByTeacher(){
-        User teacher = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return courseRepository.findByTeacherId(teacher.getId());
+    public List<CourseDto> getCoursesByCurrentTeacher(){
+        User teacher = userService.getCurrentUser();
+        return courseRepository.findByTeacherId(teacher.getId())
+                .stream()
+                .map(CourseDtoFactory::mapToDto)
+                .collect(Collectors.toList());
+    }
+
+    public void checkCourseExists(Integer courseId){
+        if(!courseRepository.existsById(courseId)){
+            throw new CourseNotFoundException(String.format("No course find with id {%d}", courseId));
+        }
+    }
+
+    public void isTeacherWithoutCourse(Integer courseId, Integer teacherId){
+        userService.checkTeacherExists(teacherId);
+        checkCourseExists(courseId);
+
+        if(!courseRepository.hasTeacherCourse(courseId, teacherId)){
+            throw new InvalidAccessException(ExceptionMessage.teacherDoesNotHaveCourse(teacherId, courseId));
+        }
+    }
+
+    public void isStudentWithoutCourse(Integer courseId, Integer studentId){
+        userService.checkStudentExists(studentId);
+        checkCourseExists(courseId);
+
+        if(!courseRepository.hasStudentCourse(courseId, studentId)){
+            throw new InvalidAccessException(ExceptionMessage.studentDoesNotHaveCourse(studentId, courseId));
+        }
     }
 }

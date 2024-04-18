@@ -1,15 +1,17 @@
 package com.example.attendance_system.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
+import lombok.*;
+
+import java.time.LocalTime;
 
 @Entity
 @Builder
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "attendance_record")
+@ToString
 public class AttendanceRecord {
 
     @Id
@@ -25,9 +27,22 @@ public class AttendanceRecord {
     @JoinColumn(name = "student_id")
     private User student;
 
+    @OneToOne
+    @JoinColumn(name = "absence_reason_id", referencedColumnName = "id")
+    private AbsenceReason absenceReason;
+
     @Enumerated(value = EnumType.STRING)
     private AttendanceStatus attendanceStatus;
 
     @Enumerated(value = EnumType.STRING)
     private AttendanceType attendanceType;
+
+    @ManyToOne(targetEntity = User.class)
+    @JoinColumn(name = "designated_person")
+    private User designatedPerson;
+
+    private LocalTime entryTime;
+
+    private LocalTime exitTime;
+
 }

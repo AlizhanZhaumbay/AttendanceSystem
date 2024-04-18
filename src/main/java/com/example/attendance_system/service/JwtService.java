@@ -40,7 +40,7 @@ public class JwtService {
 
     private String generateToken(Map<String, Object> extraClaims,
                                         UserDetails userDetails) {
-        return buildToken(extraClaims, userDetails, refreshExpiration);
+        return buildToken(extraClaims, userDetails, jwtExpiration);
     }
 
     public String generateRefreshToken(

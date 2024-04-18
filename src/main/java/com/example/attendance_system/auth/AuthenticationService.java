@@ -1,14 +1,19 @@
-package com.example.attendance_system.service;
+package com.example.attendance_system.auth;
 
 import com.example.attendance_system.auth.AuthenticationRequest;
 import com.example.attendance_system.auth.AuthenticationResponse;
 import com.example.attendance_system.auth.RegisterRequest;
+import com.example.attendance_system.exception.TokenExpiredException;
+import com.example.attendance_system.exception.UserAlreadyExists;
+import com.example.attendance_system.exception.UserNotFoundException;
 import com.example.attendance_system.model.Person;
 import com.example.attendance_system.model.Token;
 import com.example.attendance_system.model.TokenType;
 import com.example.attendance_system.model.User;
 import com.example.attendance_system.repo.TokenRepository;
 import com.example.attendance_system.repo.UserRepository;
+import com.example.attendance_system.service.JwtService;
+import com.example.attendance_system.util.ExceptionMessage;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -37,6 +42,9 @@ public class AuthenticationService {
                 .role(request.role())
                 .person(userRepository.getPersonById(request.personId()))
                 .build();
+        if(userRepository.existsByLogin(request.login())){
+            throw new UserAlreadyExists(ExceptionMessage.userAlreadyExistsWithLogin(request.login()));
+        }
         var savedUser = userRepository.save(user);
         var jwtToken = jwtService.generateToken(user);
         var refreshToken = jwtService.generateRefreshToken(user);
@@ -64,8 +72,8 @@ public class AuthenticationService {
         return AuthenticationResponse.builder()
                 .accessToken(jwtToken)
                 .refreshToken(refreshToken)
-//                .login(user.getLogin())
-//                .role(user.getRole())
+                .login(user.getLogin())
+                .role(user.getRole())
                 .build();
     }
 
@@ -91,15 +99,14 @@ public class AuthenticationService {
         tokenRepository.saveAll(validUserTokens);
     }
 
-    public void refreshToken(
-            HttpServletRequest request,
-            HttpServletResponse response
-    ) throws IOException {
+    public AuthenticationResponse refreshToken(
+            HttpServletRequest request
+    ){
         final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         final String refreshToken;
         final String userLogin;
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return;
+            throw new UserNotFoundException("No token found.");
         }
         refreshToken = authHeader.substring(7);
         userLogin = jwtService.extractUsername(refreshToken);
@@ -110,12 +117,16 @@ public class AuthenticationService {
                 var accessToken = jwtService.generateToken(user);
                 revokeAllUserTokens(user);
                 saveUserToken(user, accessToken);
-                var authResponse = AuthenticationResponse.builder()
+                return AuthenticationResponse.builder()
                         .accessToken(accessToken)
                         .refreshToken(refreshToken)
+                        .login(user.getLogin())
+                        .role(user.getRole())
                         .build();
-                new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
             }
+            throw new TokenExpiredException("Your refresh token has expired.");
         }
+
+        throw new UserNotFoundException("Invalid login provided.");
     }
 }

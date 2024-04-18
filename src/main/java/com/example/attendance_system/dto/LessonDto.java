@@ -12,7 +12,7 @@ import java.time.LocalTime;
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class LessonDto {
-    Long id;
+    Integer id;
     String teacher;
     LocalTime startTime;
     LocalTime endTime;

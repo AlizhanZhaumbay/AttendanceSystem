@@ -15,11 +15,19 @@ spring:
     hibernate:
       ddl-auto: update
 
+  sql:
+    init:
+      mode: always
+
 
 application:
   security:
     jwt:
       secret-key: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
-      expiration: 60000 # 86400000 # a day
+      expiration: 36000000 # an hour
       refresh-token:
-        expiration: 604800000 # 7 days
+        expiration: 86400000000 # a day
+  endpoints:
+    attendance:
+      student:
+        take: http://localhost:8080/api/v1/student/attendance/take

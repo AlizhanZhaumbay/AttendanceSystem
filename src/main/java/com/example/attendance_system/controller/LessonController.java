@@ -49,11 +49,11 @@ public class LessonController {
 
     @GetMapping("/student/courses/{courseId}/lessons")
     public ResponseEntity<List<LessonDto>> getAllLessonsByCourseForStudent(@PathVariable("courseId") Integer courseId) {
-        return ResponseEntity.ok(lessonService.getLessonsByStudent(courseId));
+        return ResponseEntity.ok(lessonService.getLessonsByCurrentStudent(courseId));
     }
 
     @GetMapping("/teacher/courses/{courseId}/lessons")
     public ResponseEntity<List<LessonDto>> getAllLessonsByCourseForTeacher(@PathVariable("courseId") Integer courseId) {
-        return ResponseEntity.ok(lessonService.getLessonsByTeacher(courseId));
+        return ResponseEntity.ok(lessonService.getLessonsByCurrentTeacher(courseId));
     }
 }

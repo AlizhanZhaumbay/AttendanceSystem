@@ -1,7 +1,9 @@
 package com.example.attendance_system.repo;
 
 import com.example.attendance_system.model.Lesson;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -18,13 +20,18 @@ public interface LessonRepository extends JpaRepository<Lesson, Integer> {
             "id in (select lesson_id from enroll where student_id=:studentId)")
     List<Lesson> findByStudent(Integer courseId, Integer studentId);
 
-    @Query("select l from Lesson l where l.course.id=:courseId and l.teacher.id=:teacherId")
+    @Query(nativeQuery = true, value = "select * from lesson where course_id=:courseId and teacher_id=:teacherId")
     List<Lesson> findByTeacher(Integer courseId, Integer teacherId);
-
-    @Query("select l from Lesson l where l.course.id=:courseId and l.id=:lessonId")
-    Optional<Lesson> findByCourseAndId(Integer courseId, Integer lessonId);
 
     @Query(value = "SELECT EXISTS (SELECT 1 FROM lesson WHERE id=:lessonId AND " +
             "teacher_id=:teacherId) as attendance_exists", nativeQuery = true)
     boolean hasTeacherLesson(Integer lessonId, Integer teacherId);
+
+    @Query(value = "SELECT EXISTS(SELECT 1 from lesson where id=:lessonId And course_id=:courseId)", nativeQuery = true)
+    boolean existsByCourseAndId(Integer courseId, Integer lessonId);
+
+    @Query(value = "SELECT EXISTS (SELECT 1 FROM lesson WHERE id in " +
+            "(select lesson_id from enroll where lesson_id=:lessonId and student_id=:studentId))", nativeQuery = true)
+    boolean hasStudentLesson(Integer lessonId, Integer studentId);
+
 }

@@ -9,6 +9,7 @@ import com.google.zxing.qrcode.QRCodeWriter;
 import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -19,6 +20,11 @@ public class QrCodeService {
     public void generateQr(String data, OutputStream outputStream) throws WriterException, IOException {
         BitMatrix bitMatrix = new QRCodeWriter().encode(data, BarcodeFormat.QR_CODE, 200, 200);
         MatrixToImageWriter.writeToStream(bitMatrix, "jpeg", outputStream );
+    }
+
+    public BufferedImage generateQr(String data) throws WriterException{
+        BitMatrix bitMatrix = new QRCodeWriter().encode(data, BarcodeFormat.QR_CODE, 200, 200);
+        return MatrixToImageWriter.toBufferedImage(bitMatrix);
     }
 
     public String decodeQr(byte[] data) throws IOException, NotFoundException {

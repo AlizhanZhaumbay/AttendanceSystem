@@ -25,10 +25,8 @@ public class UserController {
 
     @GetMapping("admin/students/{student_id}")
     public ResponseEntity<PersonDto> getOneStudent(@PathVariable("student_id") Integer studentId) {
-        Optional<PersonDto> optionalStudent = userService.getStudentById(studentId);
-        return optionalStudent
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        PersonDto student = userService.getStudentById(studentId);
+        return ResponseEntity.ok(student);
     }
 
     @GetMapping("admin/teachers")
@@ -39,20 +37,18 @@ public class UserController {
     @GetMapping("admin/teachers/{teacher_id}")
     public ResponseEntity<PersonDto> getOneTeacher(@PathVariable("teacher_id")
                                                    Integer teacherId) {
-        Optional<PersonDto> optionalTeacher = userService.getTeacherById(teacherId);
-        return optionalTeacher
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        PersonDto teacher = userService.getTeacherById(teacherId);
+        return ResponseEntity.ok(teacher);
     }
 
-    @GetMapping("teachers")
+    @GetMapping("teacher")
     public ResponseEntity<PersonDto> getPersonalInfoForTeacher(){
         User teacher = getCurrentUser();
 
         return getOneTeacher(teacher.getId());
     }
 
-    @GetMapping("students")
+    @GetMapping("student")
     public ResponseEntity<PersonDto> getPersonalInfoForStudent(){
         User student = getCurrentUser();
 
@@ -60,13 +56,7 @@ public class UserController {
 
     }
 
-    public User getCurrentUser(){
+    private User getCurrentUser(){
         return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
-
-
-
-
-
-
 }

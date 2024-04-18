@@ -5,6 +5,6 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Getter
-public class UserNotFoundException extends RuntimeException {
+public class TokenExpiredException extends RuntimeException {
     private final String message;
 }

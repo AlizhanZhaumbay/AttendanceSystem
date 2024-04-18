@@ -5,7 +5,6 @@ import java.time.LocalDate;
 
 public record PersonDto
         (
-                Integer userId,
                 String name,
                 String surname,
                 String email,

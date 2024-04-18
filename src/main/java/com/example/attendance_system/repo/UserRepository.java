@@ -18,17 +18,17 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     @Query("select p from Person p join User s on p.id = s.person.id " +
             "where s.role = 'STUDENT'")
-    Optional<List<Person>> findAllStudents();
+    List<Person> findAllStudents();
 
-    @Query("select p from Person p join User s on p.id = s.person.id and s.id =: studentId")
+    @Query("select p from Person p join User s on p.id = s.person.id and s.id=:studentId where s.role = 'STUDENT'")
     Optional<Person> findStudentById(@Param("studentId") Integer studentId);
 
 
     @Query("select p from Person p join User t on p.id = t.person.id " +
             "where t.role = 'TEACHER'")
-    Optional<List<Person>> findAllTeachers();
+    List<Person> findAllTeachers();
 
-    @Query("select p from Person p join User s on p.id = s.person.id and s.id =:teacherId")
+    @Query("select p from Person p join User s on p.id = s.person.id and s.id=:teacherId where s.role = 'TEACHER'")
     Optional<Person> findTeacherById(@Param("teacherId") Integer teacherId);
 
     @Query("select p from Person p where p.id =:id")
@@ -36,4 +36,13 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     @Query(value = "select id from _user where person_id=:personId", nativeQuery = true)
     Integer getUserIdFromPerson(Long personId);
+
+    @Query(value = "select exists (select 1 from _user where login=:login)", nativeQuery = true)
+    boolean existsByLogin(String login);
+
+    @Query(value = "select exists(select 1 from _user where id=:studentId and role='STUDENT')", nativeQuery = true)
+    boolean existsStudentById(Integer studentId);
+
+    @Query(value = "select exists(select 1 from _user where id=:teacherId and role='TEACHER')", nativeQuery = true)
+    boolean existsTeacherById(Integer teacherId);
 }

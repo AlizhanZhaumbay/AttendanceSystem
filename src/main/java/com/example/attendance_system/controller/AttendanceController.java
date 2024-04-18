@@ -1,7 +1,8 @@
 package com.example.attendance_system.controller;
 
 import com.example.attendance_system.dto.AttendanceDto;
-import com.example.attendance_system.model.Attendance;
+import com.example.attendance_system.dto.AttendanceRecordDto;
+import com.example.attendance_system.dto.AttendanceRequest;
 import com.example.attendance_system.service.AttendanceService;
 import com.google.zxing.WriterException;
 import jakarta.servlet.http.HttpServletResponse;
@@ -11,6 +12,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
 
@@ -19,34 +23,44 @@ import java.util.List;
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
 public class AttendanceController {
-
-
     private final AttendanceService attendanceService;
 
-    @PostMapping(path = "/teacher/attendance/{lesson_id}/take/qr", produces = MediaType.IMAGE_JPEG_VALUE)
+    @PostMapping(path = "/teacher/attendance/take/qr", produces = MediaType.IMAGE_JPEG_VALUE)
     @CrossOrigin
-    public void generateQrByAccessToken(HttpServletResponse response,
-                                        @PathVariable("lesson_id") Integer lessonId) throws WriterException, IOException {
+    public byte[] generateQrByAccessToken(@RequestBody AttendanceRequest attendanceRequest) throws WriterException, IOException {
 
-        attendanceService.generateQR(lessonId, response.getOutputStream());
-        response.getOutputStream().flush();
+        BufferedImage bufferedImage = attendanceService.generateQR(attendanceRequest);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        ImageIO.write(bufferedImage, "jpg", byteArrayOutputStream);
+
+        return byteArrayOutputStream.toByteArray();
     }
 
     @GetMapping("/student/attendance/take/qr/{access_token}")
     public ResponseEntity<String> takeAttendance(@PathVariable("access_token") String accessToken) {
-        if (attendanceService.accessTokenExpired(accessToken))
-            return new ResponseEntity<>("Invalid access token", HttpStatus.FORBIDDEN);
         Integer attendanceId = attendanceService.takeByQr(accessToken);
         return new ResponseEntity<>(String.valueOf(attendanceId), HttpStatus.OK);
     }
+    @GetMapping("/admin/attendance/lessons/{lesson_id}")
+    public ResponseEntity<List<AttendanceRecordDto>> getAttendancesByLessonForAdmin(@PathVariable("lesson_id") Integer lessonId) {
+        return ResponseEntity.ok(attendanceService.getAttendancesByLesson(lessonId));
+    }
 
-    @GetMapping("/teacher/attendance/{lesson_id}")
-    public ResponseEntity<List<AttendanceDto>> getAttendancesByLessonForTeacher(@PathVariable("lesson_id") Integer lessonId){
+    @GetMapping("/teacher/attendance/lessons/{lesson_id}")
+    public ResponseEntity<List<AttendanceRecordDto>> getAttendancesByLessonForTeacher(@PathVariable("lesson_id") Integer lessonId) {
         return ResponseEntity.ok(attendanceService.getAttendancesByLessonForTeacher(lessonId));
     }
 
-    @GetMapping("/admin/attendance/{lesson_id}")
-    public ResponseEntity<List<AttendanceDto>> getAttendancesByLessonForAdmin(@PathVariable("lesson_id") Integer lessonId){
-        return ResponseEntity.ok(attendanceService.getAttendancesByLesson(lessonId));
+    @GetMapping("/student/attendance/lessons/{lesson_id}")
+    public ResponseEntity<List<AttendanceRecordDto>> getAttendancesByLessonForStudent(@PathVariable("lesson_id") Integer lessonId) {
+        return ResponseEntity.ok(attendanceService.getAttendancesByLessonForStudent(lessonId));
+    }
+
+
+    @PostMapping("/student/attendance/lessons/{lesson_id}/students/{student_id}/give-access")
+    public ResponseEntity<Integer> giveAccessToTakeAttendance(
+            @PathVariable("student_id") Integer studentId,
+            @PathVariable("lesson_id") Integer lessonId){
+        return ResponseEntity.ok(attendanceService.giveAccessToStudent(lessonId, studentId));
     }
 }

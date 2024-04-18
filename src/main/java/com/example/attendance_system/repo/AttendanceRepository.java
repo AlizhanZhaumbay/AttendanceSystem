@@ -1,23 +1,26 @@
 package com.example.attendance_system.repo;
 
 import com.example.attendance_system.model.Attendance;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface AttendanceRepository extends JpaRepository<Attendance, Integer> {
 
-    @Query(value = "SELECT EXISTS (SELECT 1 FROM attendance WHERE id=:attendanceId AND " +
-            "lesson_id IN (SELECT id FROM lesson WHERE teacher_id=:teacherId)) as attendance_exists", nativeQuery = true)
-    boolean hasTeacherLesson(Integer attendanceId, Integer teacherId);
+    List<Attendance> findAttendancesByLessonId(Integer lessonId);
 
-    @Query(value = "SELECT EXISTS " +
-            "(SELECT 1 FROM attendance WHERE id=:attendanceId AND " +
-            "lesson_id IN (SELECT lesson_id FROM enroll WHERE student_id=:studentId)) " +
-            "AS attendance_exists", nativeQuery = true)
-    boolean hasStudentLesson(Integer attendanceId, Integer studentId);
+    @Query(value = "select exists(select 1 from attendance where id=:attendanceId and " +
+            "lesson_id=:lessonId)", nativeQuery = true)
+    boolean doesAttendanceBelongsToLesson(Integer lessonId, Integer attendanceId);
 
-    List<Attendance> getAttendanceByLessonId(Integer lessonId);
+    @Modifying
+    @Transactional
+    @Query(value = "insert into attendance_permission(producer_id, consumer_id, lesson_id) " +
+            "VALUES (:producerId,:consumerId,:lessonId)", nativeQuery = true)
+    void createPermission(Integer producerId, Integer consumerId, Integer lessonId);
+
+
 }

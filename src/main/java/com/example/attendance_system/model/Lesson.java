@@ -1,6 +1,5 @@
 package com.example.attendance_system.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -19,10 +18,10 @@ public class Lesson {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "teacher_id", insertable = false, updatable = false)
+    @JoinColumn(name = "teacher_id")
     private User teacher;
 
     @Column(name = "start_time")
@@ -33,17 +32,17 @@ public class Lesson {
     @DateTimeFormat(pattern = "HH:mm")
     private LocalTime endTime;
 
-//    @JoinTable(name = "enroll",
-//            joinColumns = @JoinColumn(name = "lesson_id"),
-//            inverseJoinColumns = @JoinColumn(name = "student_id"))
-//    @ManyToMany(fetch = FetchType.LAZY)
-//    private List<User> lessonStudents;
+    @JoinTable(name = "enroll",
+            joinColumns = @JoinColumn(name = "lesson_id"),
+            inverseJoinColumns = @JoinColumn(name = "student_id"))
+    @ManyToMany(fetch = FetchType.LAZY)
+    private List<User> lessonStudents;
 
     @Column(name = "day_of_week")
     private String dayOfWeek;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "course_id", insertable = false, updatable = false)
+    @JoinColumn(name = "course_id")
     private Course course;
 
     @Column(name = "_group")

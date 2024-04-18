@@ -16,10 +16,16 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
             "(select lesson_id from enroll where student_id=:studentId))")
     List<Course> findByStudentId(Integer studentId);
 
-    @Query("select c from Course c where c.id in (select l.course.id from Lesson l where l.teacher.id=:teacherId)")
+    @Query("select c from Course c where c.id in " +
+            "(select l.course.id from Lesson l where l.teacher.id=:teacherId)")
     List<Course> findByTeacherId(Integer teacherId);
 
-//    @Query(nativeQuery = true,
-//            value = "select * from course where id in (select course_id from lesson where teacher_id=:teacherId)")
-//    List<Course> findByTeacherId(Integer teacherId);
+    @Query(value = "select exists (select 1 from course where id=:courseId and " +
+            "id in (select course_id from lesson where teacher_id=:teacherId))", nativeQuery = true)
+    boolean hasTeacherCourse(Integer courseId, Integer teacherId);
+
+    @Query(value = "select exists (select 1 from course where id=:courseId and " +
+            "id in (select course_id from lesson where " +
+            "id in (select lesson_id from enroll where student_id=:studentId)))", nativeQuery = true)
+    boolean hasStudentCourse(Integer courseId, Integer studentId);
 }
