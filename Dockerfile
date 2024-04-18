@@ -1,4 +1,4 @@
-FROM adoptopenjdk/openjdk21:jre
+FROM openjdk:21-jdk-slim
 
 WORKDIR /app
 
