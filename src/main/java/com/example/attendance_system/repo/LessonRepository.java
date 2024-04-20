@@ -34,4 +34,14 @@ public interface LessonRepository extends JpaRepository<Lesson, Integer> {
             "(select lesson_id from enroll where lesson_id=:lessonId and student_id=:studentId))", nativeQuery = true)
     boolean hasStudentLesson(Integer lessonId, Integer studentId);
 
+    @Query(value = "SELECT EXISTS(SELECT 1 from lesson where _group=:group And course_id=:courseId)", nativeQuery = true)
+    boolean existsByCourseAndGroup(Integer courseId, String group);
+
+    @Query(value = "SELECT EXISTS(SELECT 1 FROM lesson where course_id=:courseId and _group=:group " +
+            "and teacher_id=:teacherId)", nativeQuery = true)
+    boolean hasTeacherLesson(Integer courseId, String group, Integer teacherId);
+
+    @Query(value = "SELECT EXISTS(SELECT 1 FROM lesson where course_id=:courseId and _group=:group " +
+            "and id in(select lesson_id from enroll where student_id=:studentId))", nativeQuery = true)
+    boolean hasStudentLesson(Integer courseId, String group, Integer studentId);
 }

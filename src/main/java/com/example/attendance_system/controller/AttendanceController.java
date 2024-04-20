@@ -1,15 +1,14 @@
 package com.example.attendance_system.controller;
 
-import com.example.attendance_system.dto.AttendanceDto;
 import com.example.attendance_system.dto.AttendanceRecordDto;
 import com.example.attendance_system.dto.AttendanceRequest;
 import com.example.attendance_system.service.AttendanceService;
 import com.google.zxing.WriterException;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 import javax.imageio.ImageIO;
@@ -37,30 +36,37 @@ public class AttendanceController {
     }
 
     @GetMapping("/student/attendance/take/qr/{access_token}")
-    public ResponseEntity<String> takeAttendance(@PathVariable("access_token") String accessToken) {
-        Integer attendanceId = attendanceService.takeByQr(accessToken);
-        return new ResponseEntity<>(String.valueOf(attendanceId), HttpStatus.OK);
+    public ResponseEntity<Integer> takeAttendance(@PathVariable("access_token") String accessToken) {
+        Integer studentId = attendanceService.takeByQr(accessToken);
+        return new ResponseEntity<>(studentId, HttpStatus.OK);
     }
-    @GetMapping("/admin/attendance/lessons/{lesson_id}")
-    public ResponseEntity<List<AttendanceRecordDto>> getAttendancesByLessonForAdmin(@PathVariable("lesson_id") Integer lessonId) {
-        return ResponseEntity.ok(attendanceService.getAttendancesByLesson(lessonId));
-    }
-
-    @GetMapping("/teacher/attendance/lessons/{lesson_id}")
-    public ResponseEntity<List<AttendanceRecordDto>> getAttendancesByLessonForTeacher(@PathVariable("lesson_id") Integer lessonId) {
-        return ResponseEntity.ok(attendanceService.getAttendancesByLessonForTeacher(lessonId));
+    @GetMapping("/admin/attendance/courses/{course_id}/{group}")
+    public ResponseEntity<List<AttendanceRecordDto>> getAttendanceRecordsByGroupForAdmin(
+            @PathVariable("course_id") Integer courseId,
+            @PathVariable("group") String group) {
+        return ResponseEntity.ok(attendanceService.getAttendanceRecordsByGroup(courseId, group));
     }
 
-    @GetMapping("/student/attendance/lessons/{lesson_id}")
-    public ResponseEntity<List<AttendanceRecordDto>> getAttendancesByLessonForStudent(@PathVariable("lesson_id") Integer lessonId) {
-        return ResponseEntity.ok(attendanceService.getAttendancesByLessonForStudent(lessonId));
+    @GetMapping("/teacher/attendance/courses/{course_id}/{group}")
+    public ResponseEntity<List<AttendanceRecordDto>> getAttendanceRecordsByLessonForTeacher(
+            @PathVariable("course_id") Integer courseId,
+            @PathVariable("group") String group) {
+        return ResponseEntity.ok(attendanceService.getAttendanceRecordsByGroupForTeacher(courseId, group));
+    }
+
+    @GetMapping("/student/attendance/courses/{course_id}/{group}")
+    public ResponseEntity<List<AttendanceRecordDto>> getAttendanceRecordsByLessonForStudent(
+            @PathVariable("course_id") Integer courseId,
+            @PathVariable("group") String group) {
+        return ResponseEntity.ok(attendanceService.getAttendanceRecordsByGroupForStudent(courseId, group));
     }
 
 
-    @PostMapping("/student/attendance/lessons/{lesson_id}/students/{student_id}/give-access")
+    @PostMapping("/student/attendance/courses/{course_id}/{code}/students/{student_id}/give-access")
     public ResponseEntity<Integer> giveAccessToTakeAttendance(
             @PathVariable("student_id") Integer studentId,
-            @PathVariable("lesson_id") Integer lessonId){
-        return ResponseEntity.ok(attendanceService.giveAccessToStudent(lessonId, studentId));
+            @PathVariable("course_id") Integer courseId,
+            @PathVariable("code") String code){
+        return ResponseEntity.ok(attendanceService.giveAccessToStudent(courseId, code, studentId));
     }
 }

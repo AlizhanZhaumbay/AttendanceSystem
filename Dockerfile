@@ -1,15 +1,13 @@
-FROM openjdk:21-jdk-slim
+FROM maven:3.9-amazoncorretto-21 AS build
+COPY . .
+RUN mvn clean package -DskipTests
 
-WORKDIR /app
-
-COPY target/attendance-system-0.0.1-SNAPSHOT.jar /app/attendance-system-0.0.1-SNAPSHOT.jar
-
+FROM amazoncorretto:21
+COPY --from=build /target/attendance-system-0.0.1-SNAPSHOT.jar app.jar
 EXPOSE 8080
 
-RUN apt-get update && apt-get install -y postgresql-client
+ENV DB_USERNAME=${DB_USERNAME}
+ENV DB_PASSWORD=${DB_PASSWORD}
+ENV DB_URL=${DB_URL}
+ENTRYPOINT ["java", "-jar", "app.jar"]
 
-CMD ["java", "-jar", "your-application.jar"]
-
-ENV SPRING_DATASOURCE_URL ${DB_URL}
-ENV SPRING_DATASOURCE_USERNAME ${DB_USERNAME}
-ENV SPRING_DATASOURCE_PASSWORD ${DB_PASSWORD}

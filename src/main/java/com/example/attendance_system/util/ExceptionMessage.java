@@ -3,84 +3,77 @@ package com.example.attendance_system.util;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor
-@Getter
-public enum ExceptionMessage {
-    TEACHER_DOES_NOT_HAVE_COURSE("Teacher with teacher_id{%d} does have not course with course_id{%d}"),
-    TEACHER_DOES_NOT_HAVE_LESSON("Teacher with teacher_id{%d} does have not lesson with lesson_id{%d}"),
-    STUDENT_DOES_NOT_HAVE_COURSE("Student with student_id{%d} does have have course with course_id{%d}"),
-    STUDENT_DOES_NOT_HAVE_LESSON("Student with student_id{%d} does have not lesson with lesson_id{%d}"),
-    USER_LOGIN_NOT_FOUND("User with login{%s} not found."),
-    USER_ALREADY_EXISTS_WITH_LOGIN("User with login{%s} already exists."),
-    LESSON_NOT_FOUND("Lesson with id{%d} not found."),
-    LESSON_NOT_FOUND_WITH_COURSE("Lesson with id {%d} not found with course {%d}"),
-    ATTENDANCE_NOT_FOUND("Attendance with id{%d} not found"),
-    ATTENDANCE_NOT_FOUND_WITH_LESSON("Attendance with id{%d} not found with lesson{%d}"),
-    ATTENDANCE_NOT_EXISTS_OR_HAS_EXPIRED("Attendance not exists or has expired."),
-    STUDENT_NOT_FOUND("Student not found with id{%d}"),
-    TEACHER_NOT_FOUND("Teacher not found with id{%d}"),
-    ATTENDANCE_ACCESS_ALREADY_GIVEN("User {%d} has already gave attendance access for another student."),
-    ATTENDANCE_ACCESS_ALREADY_TAKEN("User {%d} has already took attendance access from another student.");;
-    private final String message;
-
+public class ExceptionMessage {
 
     public static String teacherDoesNotHaveCourse(Integer teacherId, Integer courseId){
-        return String.format(TEACHER_DOES_NOT_HAVE_COURSE.getMessage(), teacherId, courseId);
+        return String.format("Teacher with teacher_id{%d} does have not course with course_id{%d}", teacherId, courseId);
     }
 
     public static String teacherDoesNotHaveLesson(Integer teacherId, Integer lessonId){
-        return String.format(TEACHER_DOES_NOT_HAVE_LESSON.getMessage(), teacherId, lessonId);
+        return String.format("Teacher with teacher_id{%d} does have not lesson with lesson_id{%d}", teacherId, lessonId);
     }
+
     public static String studentDoesNotHaveCourse(Integer studentId, Integer courseId){
-        return String.format(STUDENT_DOES_NOT_HAVE_COURSE.getMessage(), studentId, courseId);
+        return String.format("Student with student_id{%d} does have have course with course_id{%d}", studentId, courseId);
     }
 
     public static String studentDoesNotHaveLesson(Integer studentId, Integer lessonId){
-        return String.format(STUDENT_DOES_NOT_HAVE_LESSON.getMessage(), studentId, lessonId);
+        return String.format("Student with student_id{%d} does have not lesson with lesson_id{%d}", studentId, lessonId);
     }
 
     public static String userLoginNotFound(String login){
-        return String.format(USER_LOGIN_NOT_FOUND.getMessage(), login);
+        return String.format("User with login{%s} not found.", login);
     }
 
     public static String userAlreadyExistsWithLogin(String login){
-        return String.format(USER_ALREADY_EXISTS_WITH_LOGIN.getMessage(), login);
+        return String.format("User with login{%s} already exists.", login);
     }
 
     public static String lessonNotFound(Integer lessonId){
-        return String.format(LESSON_NOT_FOUND.getMessage(), lessonId);
+        return String.format("Lesson with id{%d} not found.", lessonId);
     }
 
     public static String lessonNotFoundWithCourse(Integer lessonId, Integer courseId){
-        return String.format(LESSON_NOT_FOUND_WITH_COURSE.getMessage(), courseId, lessonId);
+        return String.format("Lesson with id {%d} not found with course {%d}", lessonId, courseId);
     }
 
-
     public static String attendanceNotFoundException(Integer attendanceId) {
-        return String.format(ATTENDANCE_NOT_FOUND.getMessage(), attendanceId);
+        return String.format("Attendance with id{%d} not found", attendanceId);
     }
 
     public static String attendanceNotFoundWithLessonException(Integer attendanceId, Integer lessonId) {
-        return String.format(ATTENDANCE_NOT_FOUND_WITH_LESSON.getMessage(), attendanceId, lessonId);
+        return String.format("Attendance with id{%d} not found with lesson{%d}", attendanceId, lessonId);
     }
 
     public static String attendanceNotExistsOrHasExpiredException() {
-        return ATTENDANCE_NOT_EXISTS_OR_HAS_EXPIRED.getMessage();
+        return "Attendance not exists or has expired.";
     }
 
     public static String studentNotFound(Integer studentId) {
-        return String.format(STUDENT_NOT_FOUND.getMessage(), studentId);
+        return String.format("Student not found with id{%d}", studentId);
     }
 
     public static String teacherNotFound(Integer teacherId) {
-        return String.format(TEACHER_NOT_FOUND.getMessage(), teacherId);
+        return String.format("Teacher not found with id{%d}", teacherId);
     }
 
     public static String attendanceAccessAlreadyGiven(Integer producerId) {
-        return String.format(ATTENDANCE_ACCESS_ALREADY_GIVEN.getMessage(), producerId);
+        return String.format("User {%d} has already gave attendance access for another student.", producerId);
     }
 
     public static String attendanceAccessAlreadyTaken(Integer consumerId) {
-        return String.format(ATTENDANCE_ACCESS_ALREADY_TAKEN.getMessage(), consumerId);
+        return String.format("User {%d} has already took attendance access from another student.", consumerId);
+    }
+
+    public static String lessonNotFoundWithCourseAndGroup(String group, Integer courseId) {
+        return String.format("Lesson[%s] notFound with course_id{%d}", group, courseId);
+    }
+
+    public static String teacherDoesNotHaveLesson(Integer teacherId, String group) {
+        return String.format("Teacher with teacher_id{%d} does have not lesson[%s]", teacherId, group);
+    }
+
+    public static String studentDoesNotHaveLesson(Integer studentId, String group) {
+        return String.format("Student with student_id{%d} does have not lesson[%s]", studentId, group);
     }
 }

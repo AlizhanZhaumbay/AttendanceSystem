@@ -9,6 +9,7 @@ import com.example.attendance_system.qr.QrCodeService;
 import com.example.attendance_system.repo.AttendanceRecordRepository;
 import com.example.attendance_system.repo.AttendanceRepository;
 import com.example.attendance_system.repo.QrAccessTokenRepository;
+import com.example.attendance_system.repo.UserRepository;
 import com.example.attendance_system.util.AttendanceRecordDtoFactory;
 import com.example.attendance_system.util.ExceptionMessage;
 import com.example.attendance_system.util.ObjectValidator;
@@ -21,15 +22,14 @@ import java.awt.image.BufferedImage;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
 public class AttendanceService {
     private final QrCodeService qrCodeService;
-//    private final HashOperations<String, String, Integer> hashOperations;
+    private final UserRepository userRepository;
+    //    private final HashOperations<String, String, Integer> hashOperations;
     private final AttendanceRepository attendanceRepository;
     private final AttendanceRecordRepository attendanceRecordRepository;
     private final QrAccessTokenRepository qrAccessTokenRepository;
@@ -104,45 +104,44 @@ public class AttendanceService {
 
         boolean haveAccess = attendanceRecordRepository.checkStudentHaveAccessesForLesson(student.getId(), lessonId);
         if (haveAccess) {
-            User producer = attendanceRecordRepository.findProducerByConsumerId(student.getId());
+            User producer = userRepository.findProducerByConsumerId(student.getId());
 
-            AttendanceRecord attendanceRecordForAnotherStudent
-                    = AttendanceRecord.builder()
-                    .student(producer)
-                    .attendanceType(AttendanceType.QR)
-                    .entryTime(LocalTime.now())
-                    .exitTime(LocalTime.now())
-                    .attendanceStatus(AttendanceStatus.PRESENT)
-                    .designatedPerson(student)
-                    .build();
+            AttendanceRecord attendanceRecordForProducer = attendanceRecordRepository
+                    .findByAttendanceIdAndStudentId(attendanceId, producer.getId());
 
-            attendanceRecordRepository.saveAndFlush(attendanceRecordForAnotherStudent);
+            attendanceRecordForProducer.setAttendanceStatus(AttendanceStatus.PRESENT);
+            attendanceRecordForProducer.setAttendanceType(AttendanceType.QR);
+            attendanceRecordForProducer.setAttendanceStatus(AttendanceStatus.PRESENT);
+            attendanceRecordForProducer.setDesignatedPerson(student);
+            attendanceRecordRepository.saveAndFlush(attendanceRecordForProducer);
+
         }
-        return attendanceId;
+        return student.getId();
     }
 
-    public List<AttendanceRecordDto> getAttendancesByLesson(Integer lessonId) {
-        lessonService.checkLessonExists(lessonId);
+    public List<AttendanceRecordDto> getAttendanceRecordsByGroup(Integer courseId, String group) {
+        lessonService.checkLessonExistsWithCourseAndGroup(courseId, group);
 
-        return attendanceRecordRepository
-                .findAllByLessonId(lessonId)
+        return attendanceRecordRepository.findByCourseIdAndGroup(courseId, group)
                 .stream()
                 .map(AttendanceRecordDtoFactory::convertToDto)
                 .toList();
     }
 
-    public List<AttendanceRecordDto> getAttendancesByLessonForTeacher(Integer lessonId) {
+    public List<AttendanceRecordDto> getAttendanceRecordsByGroupForTeacher(Integer courseId, String group) {
         User teacher = userService.getCurrentUser();
-        lessonService.isTeacherWithoutLesson(lessonId, teacher.getId());
-        return getAttendancesByLesson(lessonId);
+
+        lessonService.isTeacherWithoutLesson(courseId, group, teacher.getId());
+
+        return getAttendanceRecordsByGroup(courseId, group);
     }
 
-    public List<AttendanceRecordDto> getAttendancesByLessonForStudent(Integer lessonId) {
-
+    public List<AttendanceRecordDto> getAttendanceRecordsByGroupForStudent(Integer courseId, String group) {
         User student = userService.getCurrentUser();
-        lessonService.isStudentWithoutLesson(lessonId, student.getId());
 
-        return attendanceRecordRepository.findByLessonAndStudentId(lessonId, student.getId())
+        lessonService.isStudentWithoutLesson(courseId, group, student.getId());
+
+        return attendanceRecordRepository.findByCourseIdAndGroupAndStudent(courseId, group, student.getId())
                 .stream()
                 .map(AttendanceRecordDtoFactory::convertToDto)
                 .toList();
@@ -160,30 +159,28 @@ public class AttendanceService {
             throw new AttendanceNotFoundException(ExceptionMessage.attendanceNotFoundWithLessonException(attendanceId, lessonId));
     }
 
-    public Integer giveAccessToStudent(Integer lessonId, Integer consumerStudentId) {
-        lessonService.checkLessonExists(lessonId);
-
+    public Integer giveAccessToStudent(Integer courseId, String group, Integer consumerStudentId) {
         User attendanceProducerStudent = userService.getCurrentUser();
-        lessonService.isStudentWithoutLesson(lessonId, attendanceProducerStudent.getId());
+        lessonService.isStudentWithoutLesson(courseId, group, attendanceProducerStudent.getId());
 
-        lessonService.isStudentWithoutLesson(lessonId, consumerStudentId);
+        lessonService.isStudentWithoutLesson(courseId, group, consumerStudentId);
 
         boolean isPermissionAlreadyGiven = attendanceRecordRepository
                 .existsByProducerId(attendanceProducerStudent.getId());
-        if(isPermissionAlreadyGiven){
+        if (isPermissionAlreadyGiven) {
             throw new InvalidAccessException(
                     ExceptionMessage.attendanceAccessAlreadyGiven(attendanceProducerStudent.getId()));
         }
 
         boolean isPermissionAlreadyTaken = attendanceRecordRepository
                 .existsByConsumerId(consumerStudentId);
-        if(isPermissionAlreadyTaken){
+        if (isPermissionAlreadyTaken) {
             throw new InvalidAccessException(
                     ExceptionMessage.attendanceAccessAlreadyTaken(consumerStudentId)
             );
         }
 
-        attendanceRepository.createPermission(attendanceProducerStudent.getId(), consumerStudentId, lessonId);
+        attendanceRepository.createPermission(attendanceProducerStudent.getId(), consumerStudentId, courseId);
 
         return consumerStudentId;
     }
@@ -199,6 +196,4 @@ public class AttendanceService {
         }
         return qrAccessToken;
     }
-
-
 }

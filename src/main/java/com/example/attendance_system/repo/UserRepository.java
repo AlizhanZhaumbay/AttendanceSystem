@@ -45,4 +45,9 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     @Query(value = "select exists(select 1 from _user where id=:teacherId and role='TEACHER')", nativeQuery = true)
     boolean existsTeacherById(Integer teacherId);
+
+    @Query(nativeQuery = true, value = "select * from _user where id in " +
+            "(select producer_id from attendance_permission where consumer_id=:consumerId)")
+    User findProducerByConsumerId(Integer consumerId);
+
 }

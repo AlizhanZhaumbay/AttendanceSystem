@@ -78,9 +78,15 @@ public class LessonService {
 
 
     public void checkLessonExistsWithCourse(Integer courseId, Integer lessonId){
+        courseService.checkCourseExists(courseId);
         checkLessonExists(lessonId);
         if(!lessonRepository.existsByCourseAndId(courseId, lessonId))
             throw new LessonNotFoundException(ExceptionMessage.lessonNotFoundWithCourse(lessonId, courseId));
+    }
+    public void checkLessonExistsWithCourseAndGroup(Integer courseId, String group) {
+        courseService.checkCourseExists(courseId);
+        if(!lessonRepository.existsByCourseAndGroup(courseId, group))
+            throw new LessonNotFoundException(ExceptionMessage.lessonNotFoundWithCourseAndGroup(group, courseId));
     }
 
     public void checkLessonExists(Integer lessonId){
@@ -98,6 +104,22 @@ public class LessonService {
     public void isStudentWithoutLesson(Integer lessonId, Integer studentId){
         if(!lessonRepository.hasStudentLesson(lessonId, studentId)){
             throw new InvalidAccessException(ExceptionMessage.studentDoesNotHaveLesson(studentId, lessonId));
+        }
+    }
+
+    public void isTeacherWithoutLesson(Integer courseId, String group, Integer teacherId) {
+        courseService.checkCourseExists(courseId);
+
+        if(!lessonRepository.hasTeacherLesson(courseId, group, teacherId)){
+            throw new InvalidAccessException(ExceptionMessage.teacherDoesNotHaveLesson(teacherId, group));
+        }
+    }
+
+    public void isStudentWithoutLesson(Integer courseId, String group, Integer studentId) {
+        courseService.checkCourseExists(courseId);
+
+        if(!lessonRepository.hasStudentLesson(courseId, group, studentId)){
+            throw new InvalidAccessException(ExceptionMessage.studentDoesNotHaveLesson(studentId, group));
         }
     }
 }

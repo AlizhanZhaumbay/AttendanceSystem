@@ -15,8 +15,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.example.attendance_system.util.ExceptionMessage.STUDENT_DOES_NOT_HAVE_COURSE;
-import static com.example.attendance_system.util.ExceptionMessage.TEACHER_DOES_NOT_HAVE_COURSE;
 
 @Service
 @RequiredArgsConstructor

@@ -18,9 +18,9 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Integer>
 
     @Modifying
     @Transactional
-    @Query(value = "insert into attendance_permission(producer_id, consumer_id, lesson_id) " +
-            "VALUES (:producerId,:consumerId,:lessonId)", nativeQuery = true)
-    void createPermission(Integer producerId, Integer consumerId, Integer lessonId);
+    @Query(value = "insert into attendance_permission(producer_id, consumer_id, course_id) " +
+            "VALUES (:producerId,:consumerId,:courseId)", nativeQuery = true)
+    void createPermission(Integer producerId, Integer consumerId, Integer courseId);
 
 
 }
