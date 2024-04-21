@@ -1,9 +1,9 @@
 spring:
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: jdbc:postgresql://localhost:5432/security
     driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: password
   jpa:
     show-sql: true
     properties:
@@ -19,7 +19,6 @@ spring:
     init:
       mode: always
 
-
 application:
   security:
     jwt:
@@ -30,4 +29,4 @@ application:
   endpoints:
     attendance:
       student:
-        take: http://localhost:8080/api/v1/student/attendance/take
+        take: https://${WEBSITE_URL}/api/v1/student/attendance/take/qr

@@ -54,34 +54,38 @@ public class AttendanceService {
         lessonService.isTeacherWithoutLesson(lessonId, teacher.getId());
 
         String accessToken = UUID.randomUUID().toString();
-        final String finalUrl = String.format("%s/qr/%s", studentAttendanceTakeEndpointPrefix, accessToken);
+        final String finalUrl = String.format("%s/%s", studentAttendanceTakeEndpointPrefix, accessToken);
 
 
         Lesson lesson = lessonService.getLessonById(lessonId);
         List<User> students = lesson.getLessonStudents();
         Attendance attendance = attendanceRepository.getReferenceById(attendanceId);
 
+        List<AttendanceRecord> attendanceRecords = attendanceRecordRepository.findByAttendance(attendance);
 
+        if(attendanceRecords == null || attendanceRecords.isEmpty()){
+            students.forEach(student ->
+                    attendanceRecordRepository.save(
+                            AttendanceRecord.builder()
+                                    .attendance(attendance)
+                                    .student(student)
+                                    .attendanceStatus(AttendanceStatus.ABSENCE)
+                                    .build()
+                    ));
+        }
         //INITIAL PUT ABSENCE FOR ALL
-        students.forEach(student ->
-                attendanceRecordRepository.save(
-                        AttendanceRecord.builder()
-                                .attendance(attendance)
-                                .student(student)
-                                .attendanceStatus(AttendanceStatus.ABSENCE)
-                                .build()
-                ));
         QrAccessToken qrAccessToken = QrAccessToken.builder()
                 .accessToken(accessToken)
                 .lesson(lesson)
                 .attendance(attendance)
-                .expiration(LocalDateTime.now().plusMinutes(2))
+                .expiration(LocalDateTime.now().plusMinutes(3))
                 .build();
         qrAccessTokenRepository.save(qrAccessToken);
 
         return qrCodeService.generateQr(finalUrl);
 //        hashOperations.getOperations().expire(getAccessTokenKey(accessToken), 2, TimeUnit.MINUTES);
     }
+
 
     public Integer takeByQr(final String ACCESS_TOKEN_KEY) {
 //        Map<String, Integer> attendancesKeyMap = hashOperations.entries(accessToken);

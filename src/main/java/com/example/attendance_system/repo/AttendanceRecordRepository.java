@@ -1,5 +1,6 @@
 package com.example.attendance_system.repo;
 
+import com.example.attendance_system.model.Attendance;
 import com.example.attendance_system.model.AttendanceRecord;
 import com.example.attendance_system.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -31,4 +32,6 @@ public interface AttendanceRecordRepository extends JpaRepository<AttendanceReco
             "(select id from attendance where lesson_id in (" +
             "select id from lesson where _group=:group and course_id=:courseId))",nativeQuery = true)
     List<AttendanceRecord> findByCourseIdAndGroupAndStudent(Integer courseId, String group, Integer studentId);
+
+    List<AttendanceRecord> findByAttendance(Attendance attendance);
 }
