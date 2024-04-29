@@ -21,7 +21,7 @@ public class SecurityConfiguration {
 
     private final JwtAuthFilter jwtAuthFilter;
     private final AuthenticationProvider authenticationProvider;
-    private static final String[] AUTH_WHITE_LIST_URL = {"/api/v1/auth/**"};
+    private static final String[] AUTH_WHITE_LIST_URL = {"/api/v1/auth/**", "/api/v1/attendance/appeal/**"};
     private static final String[] ADMIN_WHITE_LIST_URL = {"/api/v1/admin/**"};
     private static final String[] STUDENT_WHITE_LIST_URL = {"/api/v1/student/**"};
     private static final String[] TEACHER_WHITE_LIST_URL = {"/api/v1/teacher/**"};

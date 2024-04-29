@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 public class CourseService {
 
     private final CourseRepository courseRepository;
-    private final UserService userService;
+    private final PersonService personService;
 
     public List<CourseDto> getCourses() {
         return courseRepository.findAll()
@@ -38,7 +38,7 @@ public class CourseService {
     }
 
     public List<CourseDto> getCoursesByStudent(Integer studentId){
-        userService.checkStudentExists(studentId);
+        personService.checkStudentExists(studentId);
         return courseRepository.findByStudentId(studentId)
                 .stream()
                 .map(CourseDtoFactory::mapToDto)
@@ -46,7 +46,7 @@ public class CourseService {
     }
 
     public List<CourseDto> getCoursesByCurrentStudent(){
-        User student = userService.getCurrentUser();
+        User student = personService.getCurrentUser();
         return courseRepository.findByStudentId(student.getId())
                 .stream()
                 .map(CourseDtoFactory::mapToDto)
@@ -54,7 +54,7 @@ public class CourseService {
     }
 
     public List<CourseDto> getCoursesByTeacher(Integer teacherId){
-        userService.checkTeacherExists(teacherId);
+        personService.checkTeacherExists(teacherId);
         return courseRepository.findByTeacherId(teacherId)
                 .stream()
                 .map(CourseDtoFactory::mapToDto)
@@ -62,7 +62,7 @@ public class CourseService {
     }
 
     public List<CourseDto> getCoursesByCurrentTeacher(){
-        User teacher = userService.getCurrentUser();
+        User teacher = personService.getCurrentUser();
         return courseRepository.findByTeacherId(teacher.getId())
                 .stream()
                 .map(CourseDtoFactory::mapToDto)
@@ -76,7 +76,7 @@ public class CourseService {
     }
 
     public void isTeacherWithoutCourse(Integer courseId, Integer teacherId){
-        userService.checkTeacherExists(teacherId);
+        personService.checkTeacherExists(teacherId);
         checkCourseExists(courseId);
 
         if(!courseRepository.hasTeacherCourse(courseId, teacherId)){
@@ -85,7 +85,7 @@ public class CourseService {
     }
 
     public void isStudentWithoutCourse(Integer courseId, Integer studentId){
-        userService.checkStudentExists(studentId);
+        personService.checkStudentExists(studentId);
         checkCourseExists(courseId);
 
         if(!courseRepository.hasStudentCourse(courseId, studentId)){

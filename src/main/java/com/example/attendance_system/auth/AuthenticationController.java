@@ -5,30 +5,32 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @CrossOrigin
 @RestController
-@RequestMapping(value = "/api/v1/auth")
 @RequiredArgsConstructor
 public class AuthenticationController {
 
     private final AuthenticationService authenticationService;
 
-    @PostMapping("/register")
+    public static final String USER_SIGN_UP = "/api/v1/auth/register";
+    public static final String USER_SIGN_IN = "/api/v1/auth/login";
+    public static final String USER_REFRESH_TOKEN = "/api/v1/auth/refresh-token";
+
+    @PostMapping(USER_SIGN_UP)
     public ResponseEntity<AuthenticationResponse> register(
             @RequestBody RegisterRequest request
     ) {
         return ResponseEntity.ok(authenticationService.register(request));
     }
-    @PostMapping("/login")
+    @PostMapping(USER_SIGN_IN)
     public ResponseEntity<AuthenticationResponse> authenticate(
             @RequestBody AuthenticationRequest authenticationRequest
     ){
         return ResponseEntity.ok(authenticationService.authenticate(authenticationRequest));
     }
 
-    @PostMapping("/refresh-token")
+    @PostMapping(USER_REFRESH_TOKEN)
     public ResponseEntity<AuthenticationResponse> refreshToken(
             HttpServletRequest request
     ) {

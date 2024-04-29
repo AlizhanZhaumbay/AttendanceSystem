@@ -11,38 +11,43 @@ import java.util.List;
 @CrossOrigin
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1")
 public class CourseController {
 
     private final CourseService courseService;
+    public static final String ADMIN_SEE_COURSES_BY_STUDENT = "/api/v1/admin/students/{studentId}/courses";
+    public static final String ADMIN_SEE_COURSES_BY_TEACHER = "/api/v1/admin/teachers/{teacherId}/courses";
+    public static final String STUDENT_SEE_COURSES = "/api/v1/student/courses";
+    public static final String TEACHER_SEE_COURSES = "/api/v1/teacher/courses";
+    public static final String ADMIN_SEE_COURSES = "/api/v1/admin/courses";
+    public static final String ADMIN_SEE_COURSES_BY_ID = "/api/v1/admin/courses/{courseId}";
 
-    @GetMapping("/admin/courses")
+    @GetMapping(ADMIN_SEE_COURSES)
     public ResponseEntity<List<CourseDto>> getAllCoursesForAdmin() {
         return ResponseEntity.ok(courseService.getCourses());
     }
 
-    @GetMapping("/admin/courses/{courseId}")
+    @GetMapping(ADMIN_SEE_COURSES_BY_ID)
     public ResponseEntity<CourseDto> getOneCourseForAdmin(
             @PathVariable("courseId") Integer courseId) {
         return ResponseEntity.ok(courseService.getCourseById(courseId));
     }
 
-    @GetMapping("/admin/students/{studentId}/courses")
+    @GetMapping(ADMIN_SEE_COURSES_BY_STUDENT)
     public ResponseEntity<List<CourseDto>> getCoursesByStudent(@PathVariable("studentId") Integer studentId) {
         return ResponseEntity.ok(courseService.getCoursesByStudent(studentId));
     }
 
-    @GetMapping("/admin/teachers/{teacherId}/courses")
+    @GetMapping(ADMIN_SEE_COURSES_BY_TEACHER)
     public ResponseEntity<List<CourseDto>> getCoursesByTeacher(@PathVariable("teacherId") Integer teacherId) {
         return ResponseEntity.ok(courseService.getCoursesByTeacher(teacherId));
     }
 
-    @GetMapping("/student/courses")
+    @GetMapping(STUDENT_SEE_COURSES)
     public ResponseEntity<List<CourseDto>> getCoursesOfStudent() {
         return ResponseEntity.ok(courseService.getCoursesByCurrentStudent());
     }
 
-    @GetMapping("/teacher/courses")
+    @GetMapping(TEACHER_SEE_COURSES)
     public ResponseEntity<List<CourseDto>> getCoursesOfTeacher() {
         return ResponseEntity.ok(courseService.getCoursesByCurrentTeacher());
     }

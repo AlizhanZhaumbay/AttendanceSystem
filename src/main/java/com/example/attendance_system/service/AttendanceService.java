@@ -2,14 +2,12 @@ package com.example.attendance_system.service;
 
 import com.example.attendance_system.dto.AttendanceRecordDto;
 import com.example.attendance_system.dto.AttendanceRequest;
+import com.example.attendance_system.dto.S3Request;
 import com.example.attendance_system.exception.AttendanceNotFoundException;
 import com.example.attendance_system.exception.InvalidAccessException;
 import com.example.attendance_system.model.*;
 import com.example.attendance_system.qr.QrCodeService;
-import com.example.attendance_system.repo.AttendanceRecordRepository;
-import com.example.attendance_system.repo.AttendanceRepository;
-import com.example.attendance_system.repo.QrAccessTokenRepository;
-import com.example.attendance_system.repo.UserRepository;
+import com.example.attendance_system.repo.*;
 import com.example.attendance_system.util.AttendanceRecordDtoFactory;
 import com.example.attendance_system.util.ExceptionMessage;
 import com.example.attendance_system.util.ObjectValidator;
@@ -17,10 +15,10 @@ import com.google.zxing.WriterException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.awt.image.BufferedImage;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -28,18 +26,23 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AttendanceService {
     private final QrCodeService qrCodeService;
+    private final LessonService lessonService;
+    private final PersonService personService;
+    private final S3Service s3Service;
+
+    private final QrAccessTokenRepository qrAccessTokenRepository;
     private final UserRepository userRepository;
-    //    private final HashOperations<String, String, Integer> hashOperations;
     private final AttendanceRepository attendanceRepository;
     private final AttendanceRecordRepository attendanceRecordRepository;
-    private final QrAccessTokenRepository qrAccessTokenRepository;
-    private final LessonService lessonService;
-    private final UserService userService;
+    private final AbsenceReasonRepository absenceReasonRepository;
 
     private final ObjectValidator<AttendanceRequest> objectValidator;
 
     @Value("${application.endpoints.attendance.student.take}")
     private String studentAttendanceTakeEndpointPrefix;
+
+    @Value("${amazon-s3.files.save}")
+    private String s3FileSavingPrefix;
 
     public BufferedImage generateQR(AttendanceRequest attendanceRequest) throws WriterException {
         objectValidator.validate(attendanceRequest);
@@ -50,7 +53,7 @@ public class AttendanceService {
         isAttendanceExistsWithoutLesson(lessonId, attendanceId);
 
 
-        User teacher = userService.getCurrentUser();
+        User teacher = personService.getCurrentUser();
         lessonService.isTeacherWithoutLesson(lessonId, teacher.getId());
 
         String accessToken = UUID.randomUUID().toString();
@@ -63,7 +66,7 @@ public class AttendanceService {
 
         List<AttendanceRecord> attendanceRecords = attendanceRecordRepository.findByAttendance(attendance);
 
-        if(attendanceRecords == null || attendanceRecords.isEmpty()){
+        if (attendanceRecords == null || attendanceRecords.isEmpty()) {
             students.forEach(student ->
                     attendanceRecordRepository.save(
                             AttendanceRecord.builder()
@@ -95,7 +98,7 @@ public class AttendanceService {
         Integer attendanceId = qrAccessToken.getAttendance().getId();
 
 
-        User student = userService.getCurrentUser();
+        User student = personService.getCurrentUser();
 
         lessonService.isStudentWithoutLesson(lessonId, student.getId());
 
@@ -133,7 +136,7 @@ public class AttendanceService {
     }
 
     public List<AttendanceRecordDto> getAttendanceRecordsByGroupForTeacher(Integer courseId, String group) {
-        User teacher = userService.getCurrentUser();
+        User teacher = personService.getCurrentUser();
 
         lessonService.isTeacherWithoutLesson(courseId, group, teacher.getId());
 
@@ -141,7 +144,7 @@ public class AttendanceService {
     }
 
     public List<AttendanceRecordDto> getAttendanceRecordsByGroupForStudent(Integer courseId, String group) {
-        User student = userService.getCurrentUser();
+        User student = personService.getCurrentUser();
 
         lessonService.isStudentWithoutLesson(courseId, group, student.getId());
 
@@ -164,7 +167,7 @@ public class AttendanceService {
     }
 
     public Integer giveAccessToStudent(Integer courseId, String group, Integer consumerStudentId) {
-        User attendanceProducerStudent = userService.getCurrentUser();
+        User attendanceProducerStudent = personService.getCurrentUser();
         lessonService.isStudentWithoutLesson(courseId, group, attendanceProducerStudent.getId());
 
         lessonService.isStudentWithoutLesson(courseId, group, consumerStudentId);
@@ -199,5 +202,43 @@ public class AttendanceService {
             throw new InvalidAccessException(exception);
         }
         return qrAccessToken;
+    }
+
+    public String appeal(Integer attendanceRecordId, String description, MultipartFile file) {
+        User student = personService.getCurrentUser();
+        AttendanceRecord attendanceRecord = attendanceRecordRepository.findById(attendanceRecordId)
+                .orElseThrow(() -> new AttendanceNotFoundException("Attendance Record not found."));
+
+        Attendance attendance = attendanceRecord.getAttendance();
+        checkAttendanceExists(attendance.getId());
+        lessonService.isStudentWithoutLesson(attendance.getLesson().getId(), student.getId());
+
+        String fileId = UUID.randomUUID().toString();
+        AbsenceReason absenceReason = AbsenceReason.builder()
+                .description(description)
+                .attendanceRecord(attendanceRecord)
+                .filePath(s3FileSavingPrefix + fileId)
+                .build();
+        absenceReasonRepository.save(absenceReason);
+        attendanceRecord.setAbsenceReason(absenceReason);
+
+        attendanceRecordRepository.save(attendanceRecord);
+        s3Service.putObject(S3Request.builder()
+                .id(fileId)
+                .content(file)
+                .build());
+
+        return fileId;
+    }
+
+    public void appealAccept(Integer attendanceRecordId, AbsenceReasonStatus status) {
+
+        AttendanceRecord attendanceRecord =
+                attendanceRecordRepository.findById(attendanceRecordId)
+                        .orElseThrow(() -> new AttendanceNotFoundException("Attendance Record not found."));
+
+        AbsenceReason absenceReason = attendanceRecord.getAbsenceReason();
+        absenceReason.setStatus(status);
+        absenceReasonRepository.save(absenceReason);
     }
 }

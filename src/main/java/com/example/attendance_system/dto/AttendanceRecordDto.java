@@ -7,14 +7,15 @@ import java.time.LocalDateTime;
 
 @Builder
 public record AttendanceRecordDto(
+        Integer id,
         String student,
 
         LocalDateTime localDateTime,
 
-        AbsenceReason absenceReason,
-
         AttendanceStatus attendanceStatus,
 
-        AttendanceType attendanceType
+        AttendanceType attendanceType,
+
+        AbsenceReasonDto absenceReasonDto
 ) {
 }

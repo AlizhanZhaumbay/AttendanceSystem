@@ -1,24 +1,23 @@
 package com.example.attendance_system.service;
 
+import com.example.attendance_system.repo.PersonRepository;
 import com.example.attendance_system.util.ExceptionMessage;
 import com.example.attendance_system.util.PersonDtoFactory;
 import com.example.attendance_system.dto.PersonDto;
 import com.example.attendance_system.exception.UserNotFoundException;
 import com.example.attendance_system.model.Person;
 import com.example.attendance_system.model.User;
-import com.example.attendance_system.repo.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class UserService {
+public class PersonService {
 
-    private final UserRepository userRepository;
+    private final PersonRepository personRepository;
 
 //    public List<PersonDto> getAllStudents() {
 //        Optional<List<Person>> optionalList = userRepository.findAllStudents();
@@ -67,7 +66,7 @@ public class UserService {
 //    }
 
     public List<PersonDto> getAllStudents() {
-        List<Person> students = userRepository.findAllStudents();
+        List<Person> students = personRepository.findAllStudents();
 
         return students
                 .stream()
@@ -76,7 +75,7 @@ public class UserService {
     }
 
     public List<PersonDto> getAllTeachers() {
-        List<Person> teachers = userRepository.findAllTeachers();
+        List<Person> teachers = personRepository.findAllTeachers();
 
         return teachers
                 .stream()
@@ -87,25 +86,25 @@ public class UserService {
     public PersonDto getStudentById(Integer studentId) {
         checkStudentExists(studentId);
 
-        return userRepository.findStudentById(studentId)
+        return personRepository.findStudentById(studentId)
                 .map(PersonDtoFactory::convert)
                 .orElseThrow(() -> new UserNotFoundException(ExceptionMessage.studentNotFound(studentId)));
 
     }
 
     public PersonDto getTeacherById(Integer teacherId) {
-        return userRepository.findTeacherById(teacherId)
+        return personRepository.findTeacherById(teacherId)
                 .map(PersonDtoFactory::convert)
                 .orElseThrow(() -> new UserNotFoundException(ExceptionMessage.teacherNotFound(teacherId)));
     }
 
     public void checkStudentExists(Integer studentId) {
-        if (!userRepository.existsStudentById(studentId))
+        if (!personRepository.existsStudentById(studentId))
             throw new UserNotFoundException(ExceptionMessage.studentNotFound(studentId));
     }
 
     public void checkTeacherExists(Integer teacherId) {
-        if (!userRepository.existsTeacherById(teacherId))
+        if (!personRepository.existsTeacherById(teacherId))
             throw new UserNotFoundException(ExceptionMessage.teacherNotFound(teacherId));
     }
 

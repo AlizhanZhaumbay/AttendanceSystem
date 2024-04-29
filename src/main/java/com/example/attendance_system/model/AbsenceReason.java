@@ -2,10 +2,12 @@ package com.example.attendance_system.model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
+@Builder
 @Entity
 @Table(name = "absence_reason")
 @AllArgsConstructor
@@ -21,6 +23,8 @@ public class AbsenceReason {
 
     private String description;
 
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private AbsenceReasonStatus status;
 
+    private String filePath;
 }

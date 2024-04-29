@@ -40,7 +40,6 @@ public class AuthenticationService {
                 .login(request.login())
                 .password(passwordEncoder.encode(request.password()))
                 .role(request.role())
-                .person(userRepository.getPersonById(request.personId()))
                 .build();
         if(userRepository.existsByLogin(request.login())){
             throw new UserAlreadyExists(ExceptionMessage.userAlreadyExistsWithLogin(request.login()));

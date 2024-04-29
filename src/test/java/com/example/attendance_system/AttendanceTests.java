@@ -227,10 +227,10 @@ public class AttendanceTests {
                 );
 
         byte[] qr = createAttendanceQr(teacherAccessToken, attendance, lesson);
-        String postfixAttend = qrCodeService.decodeQr(qr)
-                .replace("http://localhost:8080/api/v1/", "");
         var requestBuilderAttend =
-                getRequestBuilder("GET", postfixAttend, student2AccessToken, null);
+//                getRequestBuilder("GET", postfixAttend, student2AccessToken, null);
+                get(qrCodeService.decodeQr(qr))
+                        .header("Authorization", getHeaderAuthorization(student2AccessToken));
         mockMvc.perform(requestBuilderAttend)
                 .andExpectAll(
                         status().isOk(),

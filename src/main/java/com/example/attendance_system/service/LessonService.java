@@ -12,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -20,7 +19,7 @@ import java.util.stream.Collectors;
 public class LessonService {
     private final LessonRepository lessonRepository;
     private final CourseService courseService;
-    private final UserService userService;
+    private final PersonService personService;
 
     public List<LessonDto> getAllLessons(Integer courseId) {
         courseService.checkCourseExists(courseId);
@@ -49,7 +48,7 @@ public class LessonService {
     }
 
     public List<LessonDto> getLessonsByCurrentStudent(Integer courseId) {
-        User student = userService.getCurrentUser();
+        User student = personService.getCurrentUser();
         courseService.isStudentWithoutCourse(courseId, student.getId());
         List<Lesson> lessons = lessonRepository.findByStudent(courseId, student.getId());
 
@@ -63,7 +62,7 @@ public class LessonService {
     }
 
     public List<LessonDto> getLessonsByCurrentTeacher(Integer courseId) {
-        User teacher = userService.getCurrentUser();
+        User teacher = personService.getCurrentUser();
         courseService.isTeacherWithoutCourse(courseId, teacher.getId());
         List<Lesson> lessons = lessonRepository.findByTeacher(courseId, teacher.getId());
 

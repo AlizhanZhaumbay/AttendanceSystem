@@ -29,4 +29,10 @@ application:
   endpoints:
     attendance:
       student:
-        take: https://${WEBSITE_URL}/api/v1/student/attendance/take/qr
+        take: ${WEBSITE_URL}/api/v1/student/attendance/take/qr
+
+amazon-s3:
+  bucket: attendance-system-appeals
+  region: us-east-1
+  files:
+    save: https://attendance-system-appeals.s3.amazonaws.com/appeals/
