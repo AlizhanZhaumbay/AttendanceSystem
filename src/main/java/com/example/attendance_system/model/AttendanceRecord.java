@@ -43,4 +43,7 @@ public class AttendanceRecord {
 
     private LocalTime entryTime;
 
+    @Column(name = "_group")
+    private String group;
+
 }

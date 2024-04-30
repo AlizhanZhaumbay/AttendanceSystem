@@ -75,6 +75,7 @@ public class AttendanceService {
                             AttendanceRecord.builder()
                                     .attendance(attendance)
                                     .student(student)
+                                    .group(lesson.getGroup())
                                     .attendanceStatus(AttendanceStatus.ABSENCE)
                                     .build()
                     ));
@@ -121,7 +122,6 @@ public class AttendanceService {
 
             attendanceRecordForProducer.setAttendanceStatus(AttendanceStatus.PRESENT);
             attendanceRecordForProducer.setAttendanceType(AttendanceType.QR);
-            attendanceRecordForProducer.setAttendanceStatus(AttendanceStatus.PRESENT);
             attendanceRecordForProducer.setDesignatedUser(student);
             attendanceRecordRepository.saveAndFlush(attendanceRecordForProducer);
 

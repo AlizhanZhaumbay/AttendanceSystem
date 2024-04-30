@@ -13,6 +13,7 @@ public class AttendanceRecordDtoFactory {
                         .entryTime(attendanceRecord.getEntryTime())
                         .attendanceStatus(attendanceRecord.getAttendanceStatus())
                         .attendanceType(attendanceRecord.getAttendanceType())
+                        .group(attendanceRecord.getGroup())
                         .absenceReasonDto(AbsenceReasonDtoFactory.convert(attendanceRecord.getAbsenceReason()));
         if (attendanceRecord.getStudent().getPerson() != null) {
             Person student = attendanceRecord.getStudent().getPerson();

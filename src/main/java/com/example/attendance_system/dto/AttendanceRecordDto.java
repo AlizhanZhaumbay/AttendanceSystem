@@ -22,6 +22,8 @@ public record AttendanceRecordDto(
 
         String designatedPerson,
 
-        LocalTime entryTime
+        LocalTime entryTime,
+
+        String group
 ) {
 }
