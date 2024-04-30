@@ -14,10 +14,11 @@ spring:
     generate-ddl: true
     hibernate:
       ddl-auto: update
-
   sql:
     init:
       mode: always
+  jackson:
+    default-property-inclusion: non_null
 
 application:
   security:
@@ -30,6 +31,7 @@ application:
     attendance:
       student:
         take: ${WEBSITE_URL}/api/v1/student/attendance/take/qr
+
 
 amazon-s3:
   bucket: attendance-system-appeals

@@ -1,6 +1,5 @@
 package com.example.attendance_system.dto;
 
-import com.example.attendance_system.model.Course;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -17,7 +16,6 @@ public class LessonDto {
     LocalTime startTime;
     LocalTime endTime;
     String dayOfWeek;
-    Course course;
+    CourseDto courseDto;
     String group;
-
 }

@@ -9,6 +9,7 @@ public class LessonDtoFactory {
         Person teacher = lesson.getTeacher().getPerson();
         String name = String.format("%s %s", teacher.getName(), teacher.getSurname());
         return new LessonDto(lesson.getId(), name, lesson.getStartTime(), lesson.getEndTime(),
-                lesson.getDayOfWeek(), lesson.getCourse(), lesson.getGroup());
+                lesson.getDayOfWeek(),
+                CourseDtoFactory.mapToDto(lesson.getCourse()), lesson.getGroup());
     }
 }

@@ -20,6 +20,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -77,7 +78,7 @@ public class AttendanceTests {
         User student1 = getUserByAccessToken(student1AccessToken);
 
 
-        User student2 = getUser("student2", Role.STUDENT);
+        User student2 = getUser(3, Role.STUDENT);
         userRepository.save(student2);
 
         Course course = courseRepository.save(getCourse(1L));
@@ -114,9 +115,9 @@ public class AttendanceTests {
     void seeAttendancesForAdminTest() {
         String adminAccessToken = getAccessToken(Role.ADMIN, "admin");
 
-        User student1 = userRepository.save(getUser("student1", Role.STUDENT));
-        User student2 = userRepository.save(getUser("student2", Role.STUDENT));
-        User student3 = userRepository.save(getUser("student3", Role.STUDENT));
+        User student1 = userRepository.save(getUser(2, Role.STUDENT));
+        User student2 = userRepository.save(getUser(3, Role.STUDENT));
+        User student3 = userRepository.save(getUser(4, Role.STUDENT));
 
         Course course = courseRepository.save(getCourse(1L));
         String group = "02-n";
@@ -139,7 +140,7 @@ public class AttendanceTests {
                         getAttendanceRecord(AttendanceType.QR, student3, attendance2, AttendanceStatus.PRESENT)));
 
 
-        var postfix = String.format("admin/attendance/courses/%d/%s", course.getId(), group);
+        var postfix = String.format("admin/attendance/courses/%d", course.getId());
         var requestBuilder = getRequestBuilder("GET", postfix, adminAccessToken, null);
 
         mockMvc.perform(requestBuilder)
@@ -158,8 +159,8 @@ public class AttendanceTests {
         String student1AccessToken = getAccessToken(Role.STUDENT, "student");
 
         User student1 = getUserByAccessToken(student1AccessToken);
-        User student2 = userRepository.save(getUser("student2", Role.STUDENT));
-        User student3 = userRepository.save(getUser("student3", Role.STUDENT));
+        User student2 = userRepository.save(getUser(2, Role.STUDENT));
+        User student3 = userRepository.save(getUser(3, Role.STUDENT));
 
         Course course = courseRepository.save(getCourse(1L));
         String group = "02-n";
@@ -182,7 +183,7 @@ public class AttendanceTests {
                         getAttendanceRecord(AttendanceType.QR, student3, attendance2, AttendanceStatus.PRESENT)));
 
 
-        var postfix = String.format("student/attendance/courses/%d/%s", course.getId(), group);
+        var postfix = String.format("student/attendance/courses/%d", course.getId());
         var requestBuilder = getRequestBuilder("GET", postfix, student1AccessToken, null);
 
         mockMvc.perform(requestBuilder)
@@ -236,7 +237,7 @@ public class AttendanceTests {
                         status().isOk(),
                         content().string(String.valueOf(student2.getId()))
                 );
-        var teacherSeeAttendancePostfix = String.format("teacher/attendance/courses/%d/%s", course.getId(), group);
+        var teacherSeeAttendancePostfix = String.format("teacher/attendance/courses/%d", course.getId());
         var seeAttendanceRecordsRequestBuilder = getRequestBuilder("GET",
                 teacherSeeAttendancePostfix,
                 teacherAccessToken, null);
@@ -350,9 +351,14 @@ public class AttendanceTests {
                 .build();
     }
 
-    private User getUser(String login, Role role) {
+    private User getUser(Integer id, Role role) {
+        Person person = new Person((long) id, id, role.name() + id,
+                String.format("%sSurname%d", role.name(), id), LocalDate.now(),
+                String.format("%s%d@mail.ru", role.name(),id));
         return User.builder()
-                .login(login)
+                .id(id)
+                .login(role.name() + id)
+                .person(person)
                 .role(role)
                 .build();
     }

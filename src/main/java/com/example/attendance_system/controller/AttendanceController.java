@@ -1,9 +1,11 @@
 package com.example.attendance_system.controller;
 
+import com.example.attendance_system.dto.AttendanceDto;
 import com.example.attendance_system.dto.AttendanceRecordDto;
 import com.example.attendance_system.dto.AttendanceRequest;
 import com.example.attendance_system.model.AbsenceReasonStatus;
 import com.example.attendance_system.service.AttendanceService;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.google.zxing.WriterException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -30,11 +32,11 @@ public class AttendanceController {
     public static final String STUDENT_PASS_ATTENDANCE_BY_QR =
             "/api/v1/student/attendance/take/qr/{access_token}";
     public static final String ADMIN_SEE_ATTENDANCE_RECORDS =
-            "/api/v1/admin/attendance/courses/{course_id}/{group}";
+            "/api/v1/admin/attendance/courses/{course_id}";
     public static final String TEACHER_SEE_ATTENDANCE_RECORDS =
-            "/api/v1/teacher/attendance/courses/{course_id}/{group}";
+            "/api/v1/teacher/attendance/courses/{course_id}";
     public static final String STUDENT_SEE_ATTENDANCE_RECORDS =
-            "/api/v1/student/attendance/courses/{course_id}/{group}";
+            "/api/v1/student/attendance/courses/{course_id}";
     public static final String STUDENT_ATTENDANCE_GIVE_PERMISSION =
             "/api/v1/student/attendance/courses/{course_id}/{code}/students/{student_id}/give-access";
     public static final String ADMIN_ATTENDANCE_APPEAL_ACCEPT =
@@ -43,6 +45,9 @@ public class AttendanceController {
             "/api/v1/admin/attendance/{attendance_record_id}/appeals/deny";
     public static final String STUDENT_ATTENDANCE_APPEAL =
             "/api/v1/student/attendance/{attendance_record_id}/appeals";
+
+    public static final String TEACHER_SET_ATTENDANCE_LIST =
+            "/api/v1/teacher/attendance/take/courses/{course_id}";
 
     @PostMapping(path = TEACHER_TAKE_ATTENDANCE_BY_QR, produces = MediaType.IMAGE_JPEG_VALUE)
     @CrossOrigin
@@ -62,24 +67,24 @@ public class AttendanceController {
     }
 
     @GetMapping(ADMIN_SEE_ATTENDANCE_RECORDS)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public ResponseEntity<List<AttendanceRecordDto>> getAttendanceRecordsByGroupForAdmin(
-            @PathVariable("course_id") Integer courseId,
-            @PathVariable("group") String group) {
-        return ResponseEntity.ok(attendanceService.getAttendanceRecordsByGroup(courseId, group));
+            @PathVariable("course_id") Integer courseId) {
+        return ResponseEntity.ok(attendanceService.getAttendanceRecordsByCourse(courseId));
     }
 
     @GetMapping(TEACHER_SEE_ATTENDANCE_RECORDS)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public ResponseEntity<List<AttendanceRecordDto>> getAttendanceRecordsByLessonForTeacher(
-            @PathVariable("course_id") Integer courseId,
-            @PathVariable("group") String group) {
-        return ResponseEntity.ok(attendanceService.getAttendanceRecordsByGroupForTeacher(courseId, group));
+            @PathVariable("course_id") Integer courseId) {
+        return ResponseEntity.ok(attendanceService.getAttendanceRecordsByGroupForTeacher(courseId));
     }
 
     @GetMapping(STUDENT_SEE_ATTENDANCE_RECORDS)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public ResponseEntity<List<AttendanceRecordDto>> getAttendanceRecordsByLessonForStudent(
-            @PathVariable("course_id") Integer courseId,
-            @PathVariable("group") String group) {
-        return ResponseEntity.ok(attendanceService.getAttendanceRecordsByGroupForStudent(courseId, group));
+            @PathVariable("course_id") Integer courseId) {
+        return ResponseEntity.ok(attendanceService.getAttendanceRecordsByGroupForStudent(courseId));
     }
 
 
@@ -114,4 +119,10 @@ public class AttendanceController {
         return ResponseEntity.ok(
                 attendanceService.appeal(attendanceRecordId, description, multipartFile));
     }
+
+    @GetMapping(TEACHER_SET_ATTENDANCE_LIST)
+    public ResponseEntity<List<AttendanceDto>> setAttendanceList(@PathVariable("course_id") Integer courseId){
+        return ResponseEntity.ok(attendanceService.getAttendancesForTeacher(courseId));
+    }
+
 }

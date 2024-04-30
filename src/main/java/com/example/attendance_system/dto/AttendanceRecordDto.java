@@ -1,21 +1,27 @@
 package com.example.attendance_system.dto;
 
 import com.example.attendance_system.model.*;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 
-import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Builder
 public record AttendanceRecordDto(
         Integer id,
+
+        Attendance attendance,
+
         String student,
 
-        LocalDateTime localDateTime,
+        AbsenceReasonDto absenceReasonDto,
 
         AttendanceStatus attendanceStatus,
 
         AttendanceType attendanceType,
 
-        AbsenceReasonDto absenceReasonDto
+        String designatedPerson,
+
+        LocalTime entryTime
 ) {
 }

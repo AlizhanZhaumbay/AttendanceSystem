@@ -39,10 +39,8 @@ public class AttendanceRecord {
 
     @ManyToOne(targetEntity = User.class)
     @JoinColumn(name = "designated_person")
-    private User designatedPerson;
+    private User designatedUser;
 
     private LocalTime entryTime;
-
-    private LocalTime exitTime;
 
 }
