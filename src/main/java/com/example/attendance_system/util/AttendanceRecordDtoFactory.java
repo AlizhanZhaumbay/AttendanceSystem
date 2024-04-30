@@ -1,5 +1,6 @@
 package com.example.attendance_system.util;
 
+import com.example.attendance_system.dto.AttendanceDto;
 import com.example.attendance_system.dto.AttendanceRecordDto;
 import com.example.attendance_system.model.AttendanceRecord;
 import com.example.attendance_system.model.Person;
@@ -13,6 +14,7 @@ public class AttendanceRecordDtoFactory {
                         .entryTime(attendanceRecord.getEntryTime())
                         .attendanceStatus(attendanceRecord.getAttendanceStatus())
                         .attendanceType(attendanceRecord.getAttendanceType())
+                        .attendanceDto(AttendanceDtoFactory.convert(attendanceRecord.getAttendance()))
                         .group(attendanceRecord.getGroup())
                         .absenceReasonDto(AbsenceReasonDtoFactory.convert(attendanceRecord.getAbsenceReason()));
         if (attendanceRecord.getStudent().getPerson() != null) {

@@ -10,7 +10,7 @@ import java.time.LocalTime;
 public record AttendanceRecordDto(
         Integer id,
 
-        Attendance attendance,
+        AttendanceDto attendanceDto,
 
         String student,
 
