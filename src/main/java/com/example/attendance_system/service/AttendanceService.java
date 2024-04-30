@@ -65,7 +65,8 @@ public class AttendanceService {
 
         Lesson lesson = lessonService.getLessonById(lessonId);
         List<User> students = lesson.getLessonStudents();
-        Attendance attendance = attendanceRepository.getReferenceById(attendanceId);
+        Attendance attendance = attendanceRepository.findById(attendanceId)
+                .orElseThrow(() -> new AttendanceNotFoundException(ExceptionMessage.attendanceNotFoundException(attendanceId)));
 
         List<AttendanceRecord> attendanceRecords = attendanceRecordRepository.findByAttendance(attendance);
 
