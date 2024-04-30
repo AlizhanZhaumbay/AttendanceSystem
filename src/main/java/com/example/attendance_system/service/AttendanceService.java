@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.awt.image.BufferedImage;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -112,6 +113,7 @@ public class AttendanceService {
 
         attendanceRecord.setAttendanceType(AttendanceType.QR);
         attendanceRecord.setAttendanceStatus(AttendanceStatus.PRESENT);
+        attendanceRecord.setEntryTime(LocalTime.now());
         attendanceRecordRepository.saveAndFlush(attendanceRecord);
 
         boolean haveAccess = attendanceRecordRepository.checkStudentHaveAccessesForLesson(student.getId(), lessonId);
@@ -122,6 +124,7 @@ public class AttendanceService {
                     .findByAttendanceIdAndStudentId(attendanceId, producer.getId());
 
             attendanceRecordForProducer.setAttendanceStatus(AttendanceStatus.PRESENT);
+            attendanceRecordForProducer.setEntryTime(LocalTime.now());
             attendanceRecordForProducer.setAttendanceType(AttendanceType.QR);
             attendanceRecordForProducer.setDesignatedUser(student);
             attendanceRecordRepository.saveAndFlush(attendanceRecordForProducer);
