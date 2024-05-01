@@ -84,7 +84,7 @@ public class AttendanceController {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public ResponseEntity<List<AttendanceRecordDto>> getAttendanceRecordsByLessonForStudent(
             @PathVariable("course_id") Integer courseId) {
-        return ResponseEntity.ok(attendanceService.getAttendanceRecordsByGroupForStudent(courseId));
+        return ResponseEntity.ok(attendanceService.getAttendanceRecordsByCourseForStudent(courseId));
     }
 
 

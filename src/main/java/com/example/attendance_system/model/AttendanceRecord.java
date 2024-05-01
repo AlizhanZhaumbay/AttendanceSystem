@@ -3,6 +3,7 @@ package com.example.attendance_system.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Entity
@@ -45,5 +46,4 @@ public class AttendanceRecord {
 
     @Column(name = "_group")
     private String group;
-
 }

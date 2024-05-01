@@ -1,29 +1,18 @@
 package com.example.attendance_system.dto;
 
-import com.example.attendance_system.model.*;
-import com.fasterxml.jackson.annotation.JsonInclude;
+import com.example.attendance_system.model.AttendanceStatus;
+import com.example.attendance_system.model.AttendanceType;
 import lombok.Builder;
 
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 
 @Builder
 public record AttendanceRecordDto(
         Integer id,
-
-        AttendanceDto attendanceDto,
-
-        String student,
-
-        AbsenceReasonDto absenceReasonDto,
-
+        String courseGroup,
+        LocalDateTime time,
         AttendanceStatus attendanceStatus,
 
-        AttendanceType attendanceType,
-
-        String designatedPerson,
-
-        LocalTime entryTime,
-
-        String group
+        AttendanceType attendanceType
 ) {
 }

@@ -152,7 +152,7 @@ public class AttendanceService {
                 .toList();
     }
 
-    public List<AttendanceRecordDto> getAttendanceRecordsByGroupForStudent(Integer courseId) {
+    public List<AttendanceRecordDto> getAttendanceRecordsByCourseForStudent(Integer courseId) {
         User student = personService.getCurrentUser();
 
         courseService.isStudentWithoutCourse(courseId, student.getId());

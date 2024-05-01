@@ -1,8 +1,5 @@
 package com.example.attendance_system.auth;
 
-import com.example.attendance_system.auth.AuthenticationRequest;
-import com.example.attendance_system.auth.AuthenticationResponse;
-import com.example.attendance_system.auth.RegisterRequest;
 import com.example.attendance_system.exception.TokenExpiredException;
 import com.example.attendance_system.exception.UserAlreadyExists;
 import com.example.attendance_system.exception.UserNotFoundException;
@@ -10,13 +7,12 @@ import com.example.attendance_system.model.Person;
 import com.example.attendance_system.model.Token;
 import com.example.attendance_system.model.TokenType;
 import com.example.attendance_system.model.User;
+import com.example.attendance_system.repo.PersonRepository;
 import com.example.attendance_system.repo.TokenRepository;
 import com.example.attendance_system.repo.UserRepository;
 import com.example.attendance_system.service.JwtService;
 import com.example.attendance_system.util.ExceptionMessage;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -24,23 +20,26 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-
 @Service
 @RequiredArgsConstructor
 public class AuthenticationService {
     private final UserRepository userRepository;
+    private final PersonRepository personRepository;
     private final TokenRepository tokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
 
     public AuthenticationResponse register(RegisterRequest request) {
-        var user = User.builder()
+        var userBuilder = User.builder()
                 .login(request.login())
                 .password(passwordEncoder.encode(request.password()))
-                .role(request.role())
-                .build();
+                .role(request.role());
+        if(request.personId() != null){
+            userBuilder.person(personRepository.findById(request.personId())
+                    .orElse(null));
+        }
+        User user = userBuilder.build();
         if(userRepository.existsByLogin(request.login())){
             throw new UserAlreadyExists(ExceptionMessage.userAlreadyExistsWithLogin(request.login()));
         }
