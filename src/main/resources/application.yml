@@ -32,6 +32,8 @@ application:
       student:
         take: ${WEBSITE_URL}/api/v1/student/attendance/take/qr
 
+WEBSITE_URL:
+
 
 amazon-s3:
   bucket: attendance-system-appeals
