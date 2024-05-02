@@ -133,31 +133,28 @@ public class AttendanceService {
         return student.getId();
     }
 
-    public List<AttendanceRecordDto> getAttendanceRecordsByCourse(Integer courseId) {
+    public List<AttendanceRecordDto> getAttendanceRecordsByCourse(Integer courseId, String group) {
 
-        return attendanceRecordRepository.findByCourseId(courseId)
+        return attendanceRecordRepository.findByCourseIdAndGroup(courseId, group)
                 .stream()
                 .map(AttendanceRecordDtoFactory::convert)
                 .toList();
     }
 
-    public List<AttendanceRecordDto> getAttendanceRecordsByGroupForTeacher(Integer courseId) {
+    public List<AttendanceRecordDto> getAttendanceRecordsByGroupForTeacher(Integer courseId, String group) {
         User teacher = personService.getCurrentUser();
 
         courseService.isTeacherWithoutCourse(courseId, teacher.getId());
 
-        return attendanceRecordRepository.findByCourseAndTeacher(courseId, teacher.getId())
-                .stream()
-                .map(AttendanceRecordDtoFactory::convert)
-                .toList();
+        return getAttendanceRecordsByCourse(courseId, group);
     }
 
-    public List<AttendanceRecordDto> getAttendanceRecordsByCourseForStudent(Integer courseId) {
+    public List<AttendanceRecordDto> getAttendanceRecordsByCourseForStudent(Integer courseId, String group) {
         User student = personService.getCurrentUser();
 
         courseService.isStudentWithoutCourse(courseId, student.getId());
 
-        return attendanceRecordRepository.findByCourseIdAndStudent(courseId, student.getId())
+        return attendanceRecordRepository.findByCourseGroupAndStudent(courseId, group, student.getId())
                 .stream()
                 .map(AttendanceRecordDtoFactory::convert)
                 .toList();
@@ -213,7 +210,7 @@ public class AttendanceService {
         return qrAccessToken;
     }
 
-    public String appeal(Integer attendanceRecordId, String description, MultipartFile file) {
+    public String appeal(Integer attendanceRecordId, Reason reason, MultipartFile file) {
         User student = personService.getCurrentUser();
         AttendanceRecord attendanceRecord = attendanceRecordRepository.findById(attendanceRecordId)
                 .orElseThrow(() -> new AttendanceNotFoundException("Attendance Record not found."));
@@ -224,7 +221,8 @@ public class AttendanceService {
 
         String fileId = UUID.randomUUID().toString();
         AbsenceReason absenceReason = AbsenceReason.builder()
-                .description(description)
+                .reason(reason)
+                .requestedDate(LocalDateTime.now())
                 .attendanceRecord(attendanceRecord)
                 .filePath(s3FileSavingPrefix + fileId)
                 .build();

@@ -14,6 +14,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
+import net.datafaker.Faker;
+import net.datafaker.providers.base.Name;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +51,8 @@ public class CourseTests {
     @Autowired
     private TokenRepository tokenRepository;
 
+    private final Faker faker = new Faker();
+
 
     private final ObjectMapper objectMapper = new ObjectMapper()
             .setSerializationInclusion(JsonInclude.Include.NON_NULL);
@@ -57,13 +61,14 @@ public class CourseTests {
     @SneakyThrows
     @DirtiesContext
     @Transactional
-    String returnsValidResponseAccessToken(Role role, String login) {
+    String returnsValidResponseAccessToken(Role role) {
         var register = "/auth/register";
-        String roleString = role.name();
-
+        Name name = faker.name();
+        String login = name.firstName();
+        String password = faker.passport().valid();
         RegisterRequest registerRequest =
                 new RegisterRequest(login,
-                        roleString + "password",
+                        password,
                         role, null);
 
         var registerRequestBuilder = post(BASE_URL + register)
@@ -86,7 +91,7 @@ public class CourseTests {
     @Transactional
     @DisplayName("Get request should send all courses for Admin with status 200")
     void handleAuth_ReturnsValidCoursesForAdmin() {
-        String accessToken = returnsValidResponseAccessToken(Role.ADMIN, "admin");
+        String accessToken = returnsValidResponseAccessToken(Role.ADMIN);
 
         Course course = getCourse(1L);
         courseRepository.save(course);
@@ -107,8 +112,8 @@ public class CourseTests {
     @DirtiesContext
     @DisplayName("Get request should send all courses for Teacher with status 200")
     void handleAuth_ReturnsValidCoursesForTeacher() {
-        String accessTokenTeacher1 = returnsValidResponseAccessToken(Role.TEACHER, "teacher1");
-        String accessTokenTeacher2 = returnsValidResponseAccessToken(Role.TEACHER, "teacher2");
+        String accessTokenTeacher1 = returnsValidResponseAccessToken(Role.TEACHER);
+        String accessTokenTeacher2 = returnsValidResponseAccessToken(Role.TEACHER);
 
         User teacher1 = tokenRepository.findByToken(accessTokenTeacher1).get().getUser();
         User teacher2 = tokenRepository.findByToken(accessTokenTeacher2).get().getUser();
@@ -147,8 +152,8 @@ public class CourseTests {
     @Transactional
     @DisplayName("Get request should send all courses for Student with status 200")
     void handleAuth_ReturnsValidCoursesForStudent() {
-        String accessTokenStudent1 = returnsValidResponseAccessToken(Role.STUDENT, "student1");
-        String accessTokenStudent2 = returnsValidResponseAccessToken(Role.STUDENT, "student2");
+        String accessTokenStudent1 = returnsValidResponseAccessToken(Role.STUDENT);
+        String accessTokenStudent2 = returnsValidResponseAccessToken(Role.STUDENT);
 
         User student1 = tokenRepository.findByToken(accessTokenStudent1).get().getUser();
         User student2 = tokenRepository.findByToken(accessTokenStudent2).get().getUser();

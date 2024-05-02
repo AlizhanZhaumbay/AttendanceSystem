@@ -9,7 +9,7 @@ public class AbsenceReasonDtoFactory {
             return AbsenceReasonDto.builder().build();
         }
         return new AbsenceReasonDto(
-                absenceReason.getDescription(),
+                absenceReason.getReason(),
                 absenceReason.getStatus(),
                 absenceReason.getFilePath());
     }

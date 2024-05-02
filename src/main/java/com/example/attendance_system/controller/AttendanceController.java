@@ -4,6 +4,7 @@ import com.example.attendance_system.dto.AttendanceDto;
 import com.example.attendance_system.dto.AttendanceRecordDto;
 import com.example.attendance_system.dto.AttendanceRequest;
 import com.example.attendance_system.model.AbsenceReasonStatus;
+import com.example.attendance_system.model.Reason;
 import com.example.attendance_system.service.AttendanceService;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.google.zxing.WriterException;
@@ -32,11 +33,11 @@ public class AttendanceController {
     public static final String STUDENT_PASS_ATTENDANCE_BY_QR =
             "/api/v1/student/attendance/take/qr/{access_token}";
     public static final String ADMIN_SEE_ATTENDANCE_RECORDS =
-            "/api/v1/admin/attendance/courses/{course_id}";
+            "/api/v1/admin/attendance/courses/{course_id}/{group}";
     public static final String TEACHER_SEE_ATTENDANCE_RECORDS =
-            "/api/v1/teacher/attendance/courses/{course_id}";
+            "/api/v1/teacher/attendance/courses/{course_id}/{group}";
     public static final String STUDENT_SEE_ATTENDANCE_RECORDS =
-            "/api/v1/student/attendance/courses/{course_id}";
+            "/api/v1/student/attendance/courses/{course_id}/{group}";
     public static final String STUDENT_ATTENDANCE_GIVE_PERMISSION =
             "/api/v1/student/attendance/courses/{course_id}/{code}/students/{student_id}/give-access";
     public static final String ADMIN_ATTENDANCE_APPEAL_ACCEPT =
@@ -69,22 +70,25 @@ public class AttendanceController {
     @GetMapping(ADMIN_SEE_ATTENDANCE_RECORDS)
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public ResponseEntity<List<AttendanceRecordDto>> getAttendanceRecordsByGroupForAdmin(
-            @PathVariable("course_id") Integer courseId) {
-        return ResponseEntity.ok(attendanceService.getAttendanceRecordsByCourse(courseId));
+            @PathVariable("course_id") Integer courseId,
+            @PathVariable("group") String group) {
+        return ResponseEntity.ok(attendanceService.getAttendanceRecordsByCourse(courseId, group));
     }
 
     @GetMapping(TEACHER_SEE_ATTENDANCE_RECORDS)
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public ResponseEntity<List<AttendanceRecordDto>> getAttendanceRecordsByLessonForTeacher(
-            @PathVariable("course_id") Integer courseId) {
-        return ResponseEntity.ok(attendanceService.getAttendanceRecordsByGroupForTeacher(courseId));
+            @PathVariable("course_id") Integer courseId,
+            @PathVariable("group") String group) {
+        return ResponseEntity.ok(attendanceService.getAttendanceRecordsByGroupForTeacher(courseId, group));
     }
 
     @GetMapping(STUDENT_SEE_ATTENDANCE_RECORDS)
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public ResponseEntity<List<AttendanceRecordDto>> getAttendanceRecordsByLessonForStudent(
-            @PathVariable("course_id") Integer courseId) {
-        return ResponseEntity.ok(attendanceService.getAttendanceRecordsByCourseForStudent(courseId));
+            @PathVariable("course_id") Integer courseId,
+            @PathVariable("group") String group) {
+        return ResponseEntity.ok(attendanceService.getAttendanceRecordsByCourseForStudent(courseId, group));
     }
 
 
@@ -114,15 +118,17 @@ public class AttendanceController {
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> attendanceAppeal(
             @PathVariable("attendance_record_id") Integer attendanceRecordId,
-            @RequestParam("reason") String description,
+            @RequestParam("reason") Reason reason,
             @RequestParam("file") MultipartFile multipartFile) {
         return ResponseEntity.ok(
-                attendanceService.appeal(attendanceRecordId, description, multipartFile));
+                attendanceService.appeal(attendanceRecordId, reason, multipartFile));
     }
 
     @GetMapping(TEACHER_SET_ATTENDANCE_LIST)
     public ResponseEntity<List<AttendanceDto>> setAttendanceList(@PathVariable("course_id") Integer courseId){
         return ResponseEntity.ok(attendanceService.getAttendancesForTeacher(courseId));
     }
+
+
 
 }
