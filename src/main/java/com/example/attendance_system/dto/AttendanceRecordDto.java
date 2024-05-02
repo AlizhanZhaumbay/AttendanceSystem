@@ -15,6 +15,8 @@ public record AttendanceRecordDto(
 
         String student,
 
+        String designatedStudent,
+
         AttendanceType attendanceType
 ) {
 }

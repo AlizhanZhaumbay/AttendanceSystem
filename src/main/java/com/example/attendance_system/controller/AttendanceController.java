@@ -3,6 +3,7 @@ package com.example.attendance_system.controller;
 import com.example.attendance_system.dto.AttendanceDto;
 import com.example.attendance_system.dto.AttendanceRecordDto;
 import com.example.attendance_system.dto.AttendanceRequest;
+import com.example.attendance_system.dto.PersonDto;
 import com.example.attendance_system.model.AbsenceReasonStatus;
 import com.example.attendance_system.model.Reason;
 import com.example.attendance_system.service.AttendanceService;
@@ -39,7 +40,7 @@ public class AttendanceController {
     public static final String STUDENT_SEE_ATTENDANCE_RECORDS =
             "/api/v1/student/attendance/courses/{course_id}/{group}";
     public static final String STUDENT_ATTENDANCE_GIVE_PERMISSION =
-            "/api/v1/student/attendance/courses/{course_id}/{code}/students/{student_id}/give-access";
+            "/api/v1/student/attendance/courses/{course_id}/{group}/students/{student_id}/give-access";
     public static final String ADMIN_ATTENDANCE_APPEAL_ACCEPT =
             "/api/v1/admin/attendance/{attendance_record_id}/appeals/accept";
     public static final String ADMIN_ATTENDANCE_APPEAL_DENY =
@@ -48,7 +49,12 @@ public class AttendanceController {
             "/api/v1/student/attendance/{attendance_record_id}/appeals";
 
     public static final String TEACHER_SET_ATTENDANCE_LIST =
-            "/api/v1/teacher/attendance/take/courses/{course_id}";
+            "/api/v1/teacher/attendance/take/courses/{course_id}/{group}";
+
+    public static final String STUDENTS_LIST_TO_GIVE_PERMISSION =
+            "/api/v1/student/courses/{course_id}/{group}/students";
+
+
 
     @PostMapping(path = TEACHER_TAKE_ATTENDANCE_BY_QR, produces = MediaType.IMAGE_JPEG_VALUE)
     @CrossOrigin
@@ -96,8 +102,8 @@ public class AttendanceController {
     public ResponseEntity<Integer> giveAccessToTakeAttendance(
             @PathVariable("student_id") Integer studentId,
             @PathVariable("course_id") Integer courseId,
-            @PathVariable("code") String code) {
-        return ResponseEntity.ok(attendanceService.giveAccessToStudent(courseId, code, studentId));
+            @PathVariable("group") String group) {
+        return ResponseEntity.ok(attendanceService.giveAccessToStudent(courseId, group, studentId));
     }
 
     @PostMapping(ADMIN_ATTENDANCE_APPEAL_ACCEPT)
@@ -125,10 +131,14 @@ public class AttendanceController {
     }
 
     @GetMapping(TEACHER_SET_ATTENDANCE_LIST)
-    public ResponseEntity<List<AttendanceDto>> setAttendanceList(@PathVariable("course_id") Integer courseId){
-        return ResponseEntity.ok(attendanceService.getAttendancesForTeacher(courseId));
+    public ResponseEntity<List<AttendanceDto>> setAttendanceList(@PathVariable("course_id") Integer courseId,
+                                                                 @PathVariable("group") String group){
+        return ResponseEntity.ok(attendanceService.getAttendancesForTeacher(courseId, group));
     }
 
-
-
+    @GetMapping(STUDENTS_LIST_TO_GIVE_PERMISSION)
+    public ResponseEntity<List<PersonDto>> studentsList(@PathVariable("course_id") Integer courseId,
+                                                        @PathVariable("group") String group){
+        return ResponseEntity.ok(attendanceService.getAllStudentsByCourseGroup(courseId, group));
+    }
 }

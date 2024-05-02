@@ -17,7 +17,6 @@ import net.datafaker.Faker;
 import net.datafaker.providers.base.DateAndTime;
 import net.datafaker.providers.base.Internet;
 import net.datafaker.providers.base.Name;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -99,11 +98,11 @@ public class AttendanceTests {
         User student2 = getUser(Role.STUDENT);
         userRepository.save(student2);
 
-        Course course = getCourse();
+        Course course = saveCourse();
 
         String group = "01-P";
         List<User> students = List.of(student1, student2);
-        Lesson lesson = getLesson(teacher, course, students, group);
+        Lesson lesson = saveLesson(teacher, course, students, group);
         Attendance attendance = attendanceRepository.save(
                 Attendance.builder()
                         .lesson(lesson)
@@ -138,12 +137,12 @@ public class AttendanceTests {
 
         User teacher = userRepository.save(getUser(Role.TEACHER));
 
-        Course course = getCourse();
+        Course course = saveCourse();
         String group = "02-n";
         String anotherGroup = "03-n";
-        Lesson lesson1 = getLesson(teacher, course, List.of(student1, student2, student3), group);
-        Lesson lesson2 = getLesson(teacher, course, List.of(student1, student2, student3), group);
-        Lesson lesson3 = getLesson(teacher, course, List.of(student1, student2, student3), anotherGroup);
+        Lesson lesson1 = saveLesson(teacher, course, List.of(student1, student2, student3), group);
+        Lesson lesson2 = saveLesson(teacher, course, List.of(student1, student2, student3), group);
+        Lesson lesson3 = saveLesson(teacher, course, List.of(student1, student2, student3), anotherGroup);
 
         Attendance attendance1 = attendanceRepository.save(getAttendance(lesson1));
         Attendance attendance2 = attendanceRepository.save(getAttendance(lesson2));
@@ -193,12 +192,12 @@ public class AttendanceTests {
 
         User teacher = userRepository.save(getUser(Role.TEACHER));
 
-        Course course = getCourse();
+        Course course = saveCourse();
         String group = "02-n";
         String anotherGroup = "01-n";
-        Lesson lesson1 = getLesson(teacher, course, List.of(student1, student2, student3), group);
-        Lesson lesson2 = getLesson(teacher, course, List.of(student1, student2, student3), group);
-        Lesson lesson3 = getLesson(teacher, course, List.of(student3, student2), anotherGroup);
+        Lesson lesson1 = saveLesson(teacher, course, List.of(student1, student2, student3), group);
+        Lesson lesson2 = saveLesson(teacher, course, List.of(student1, student2, student3), group);
+        Lesson lesson3 = saveLesson(teacher, course, List.of(student3, student2), anotherGroup);
 
         Attendance attendance1 = attendanceRepository.save(getAttendance(lesson1));
         Attendance attendance2 = attendanceRepository.save(getAttendance(lesson2));
@@ -212,7 +211,7 @@ public class AttendanceTests {
                         getAttendanceRecord(null, student1, attendance2, AttendanceStatus.ABSENCE),
                         getAttendanceRecord(null, student2, attendance2, AttendanceStatus.ABSENCE),
                         getAttendanceRecord(AttendanceType.QR, student3, attendance2, AttendanceStatus.PRESENT),
-                        
+
                         getAttendanceRecord(null, student3, attendance3, AttendanceStatus.ABSENCE),
                         getAttendanceRecord(null, student2, attendance3, AttendanceStatus.PRESENT)));
 
@@ -227,7 +226,7 @@ public class AttendanceTests {
                         status().isOk(),
                         content().contentType(MediaType.APPLICATION_JSON)
                 ).andReturn();
-        
+
         compareForEquationResponseLengthAndExpectedLength(mvcResult, 2);
     }
 
@@ -244,12 +243,12 @@ public class AttendanceTests {
         String teacherAccessToken = getAccessToken(Role.TEACHER);
         User teacher = getUserByAccessToken(teacherAccessToken);
 
-        Course course = getCourse();
+        Course course = saveCourse();
         String group = "02-n";
         String anotherGroup = "01-n";
-        Lesson lesson1 = getLesson(teacher, course, List.of(student1, student2, student3), group);
-        Lesson lesson2 = getLesson(teacher, course, List.of(student1, student2, student3), group);
-        Lesson lesson3 = getLesson(teacher, course, List.of(student3, student2), anotherGroup);
+        Lesson lesson1 = saveLesson(teacher, course, List.of(student1, student2, student3), group);
+        Lesson lesson2 = saveLesson(teacher, course, List.of(student1, student2, student3), group);
+        Lesson lesson3 = saveLesson(teacher, course, List.of(student3, student2), anotherGroup);
 
         Attendance attendance1 = attendanceRepository.save(getAttendance(lesson1));
         Attendance attendance2 = attendanceRepository.save(getAttendance(lesson2));
@@ -299,17 +298,17 @@ public class AttendanceTests {
 
         String group = "02-P";
 
-        Course course = getCourse();
+        Course course = saveCourse();
         Lesson lesson =
-                getLesson(teacher, course, List.of(student1, student2), group);
+                saveLesson(teacher, course, List.of(student1, student2), group);
 
         Attendance attendance = attendanceRepository.save(getAttendance(lesson));
 
         var postfixGiveAccess = String.format(
-                AttendanceController.STUDENT_ATTENDANCE_GIVE_PERMISSION
-                        .replace("{course_id}", String.valueOf(course.getId()))
-                        .replace("{code}", group))
-                        .replace("{student_id}", String.valueOf(student2.getId()));
+                        AttendanceController.STUDENT_ATTENDANCE_GIVE_PERMISSION
+                                .replace("{course_id}", String.valueOf(course.getId()))
+                                .replace("{group}", group))
+                .replace("{student_id}", String.valueOf(student2.getId()));
         var requestBuilderGiveAccess =
                 getRequestBuilder("POST", postfixGiveAccess, student1AccessToken, null);
 
@@ -329,7 +328,8 @@ public class AttendanceTests {
                         content().string(String.valueOf(student2.getId()))
                 );
         var teacherSeeAttendancePostfix = AttendanceController.TEACHER_SEE_ATTENDANCE_RECORDS
-                .replace("{course_id}", String.valueOf(course.getId()));
+                .replace("{course_id}", String.valueOf(course.getId()))
+                .replace("{group}", group);
         var seeAttendanceRecordsRequestBuilder = getRequestBuilder("GET",
                 teacherSeeAttendancePostfix,
                 teacherAccessToken, null);
@@ -339,6 +339,110 @@ public class AttendanceTests {
                 status().isOk(),
                 content().contentType(MediaType.APPLICATION_JSON)
         );
+    }
+
+    @Test
+    @Transactional
+    @DirtiesContext
+    @SneakyThrows
+    void teacherTakeAttendanceList() {
+        String teacherAccessToken = getAccessToken(Role.TEACHER);
+        User teacher = getUserByAccessToken(teacherAccessToken);
+
+        Course course = saveCourse();
+        String group = "02-n";
+        String anotherGroup = "03-n";
+        Lesson lesson1 = saveLesson(teacher, course, null, group);
+        Lesson lesson2 = saveLesson(teacher, course, null, anotherGroup);
+
+        List<Attendance> attendances = List.of(
+                getAttendance(lesson1),
+                getAttendance(lesson1),
+                getAttendance(lesson1),
+                getAttendance(lesson2));
+
+        attendanceRepository.saveAll(attendances);
+        var requestBuilder =
+                get(AttendanceController.TEACHER_SET_ATTENDANCE_LIST
+                        .replace("{course_id}", String.valueOf(course.getId()))
+                        .replace("{group}", group))
+                        .header("Authorization", getHeaderAuthorization(teacherAccessToken));
+        MvcResult mvcResult = mockMvc.perform(requestBuilder)
+                .andExpectAll(
+                        status().isOk(),
+                        content().contentType(MediaType.APPLICATION_JSON)
+                ).andReturn();
+
+        compareForEquationResponseLengthAndExpectedLength(mvcResult, 3);
+
+    }
+
+    @Test
+    @Transactional
+    @DirtiesContext
+    @SneakyThrows
+    void seeStudentListToGivePermission() {
+        createTable();
+        String student1AccessToken = getAccessToken(Role.STUDENT);
+        User student1 = getUserByAccessToken(student1AccessToken);
+
+        User student2 = getUser(Role.STUDENT);
+        User student3 = getUser(Role.STUDENT);
+        User student4 = getUser(Role.STUDENT);
+        userRepository.saveAll(List.of(student2, student3, student4));
+
+        String group = "02-P";
+        String anotherGroup = "01-P";
+
+        Course course = saveCourse();
+        saveLesson(null, course, List.of(student1, student2, student3), group);
+        saveLesson(null, course, List.of(student1, student4), anotherGroup);
+        var postfixGiveAccess = AttendanceController.STUDENTS_LIST_TO_GIVE_PERMISSION
+                        .replace("{course_id}", String.valueOf(course.getId()))
+                        .replace("{group}", anotherGroup);
+        var requestBuilderGiveAccess =
+                getRequestBuilder("GET", postfixGiveAccess, student1AccessToken, null);
+
+        MvcResult mvcResult = mockMvc.perform(requestBuilderGiveAccess)
+                .andExpectAll(
+                        status().isOk(),
+                        content().contentType(MediaType.APPLICATION_JSON)
+                ).andReturn();
+        compareForEquationResponseLengthAndExpectedLength(mvcResult, 1);
+    }
+
+    @Test
+    @Transactional
+    @DirtiesContext
+    @SneakyThrows
+    void studentAppealTest() {
+        createTable();
+        String student1AccessToken = getAccessToken(Role.STUDENT);
+        User student1 = getUserByAccessToken(student1AccessToken);
+
+        User student2 = getUser(Role.STUDENT);
+        User student3 = getUser(Role.STUDENT);
+        User student4 = getUser(Role.STUDENT);
+        userRepository.saveAll(List.of(student2, student3, student4));
+
+        String group = "02-P";
+        String anotherGroup = "01-P";
+
+        Course course = saveCourse();
+        saveLesson(null, course, List.of(student1, student2, student3), group);
+        saveLesson(null, course, List.of(student1, student4), anotherGroup);
+        var postfixGiveAccess = AttendanceController.STUDENTS_LIST_TO_GIVE_PERMISSION
+                .replace("{course_id}", String.valueOf(course.getId()))
+                .replace("{group}", anotherGroup);
+        var requestBuilderGiveAccess =
+                getRequestBuilder("GET", postfixGiveAccess, student1AccessToken, null);
+
+        MvcResult mvcResult = mockMvc.perform(requestBuilderGiveAccess)
+                .andExpectAll(
+                        status().isOk(),
+                        content().contentType(MediaType.APPLICATION_JSON)
+                ).andReturn();
+        compareForEquationResponseLengthAndExpectedLength(mvcResult, 1);
     }
 
     @SneakyThrows
@@ -421,7 +525,7 @@ public class AttendanceTests {
 
     @SneakyThrows
     private void compareForEquationResponseLengthAndExpectedLength(MvcResult mvcResult, int expectedLength) {
-        List responseList= objectMapper.readValue(mvcResult.getResponse().getContentAsString(),
+        List responseList = objectMapper.readValue(mvcResult.getResponse().getContentAsString(),
                 List.class);
         assertEquals(expectedLength, responseList.size());
     }
@@ -437,7 +541,7 @@ public class AttendanceTests {
                 .build();
     }
 
-    private Course getCourse() {
+    private Course saveCourse() {
         Random random = new Random();
         Supplier<String> courseCode = () -> {
             String[] coursePrefixes = {"MAT", "INF", "ENG", "SCI", "HIS", "ART", "PHY", "BIO"};
@@ -458,7 +562,7 @@ public class AttendanceTests {
 
     }
 
-    private Lesson getLesson(User teacher, Course course, List<User> students, String group) {
+    private Lesson saveLesson(User teacher, Course course, List<User> students, String group) {
         return lessonRepository.save(Lesson.builder()
                 .course(course)
                 .lessonStudents(students)

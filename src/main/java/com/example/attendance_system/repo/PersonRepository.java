@@ -1,6 +1,7 @@
 package com.example.attendance_system.repo;
 
 
+import com.example.attendance_system.dto.PersonDto;
 import com.example.attendance_system.model.Person;
 import com.example.attendance_system.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -34,4 +35,9 @@ public interface PersonRepository extends JpaRepository<Person, Integer> {
 
     @Query(value = "select exists(select 1 from _user where id=:teacherId and role='TEACHER')", nativeQuery = true)
     boolean existsTeacherById(Integer teacherId);
+
+    @Query(value = "select * from person where id in(select person_id from _user " +
+            "where id in (select student_id from enroll where lesson_id in (" +
+            "select id from lesson where course_id=:courseId and _group=:group)) and id!=:exceptionalStudentId)", nativeQuery = true)
+    List<Person> findStudentsByCourseGroup(Integer courseId, String group, Integer exceptionalStudentId);
 }

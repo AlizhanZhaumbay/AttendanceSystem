@@ -1,6 +1,5 @@
 package com.example.attendance_system.repo;
 
-import com.example.attendance_system.dto.AttendanceDto;
 import com.example.attendance_system.model.Attendance;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -25,6 +24,7 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Integer>
 
 
     @Query(value = "select * from attendance where lesson_id in (" +
-            "select id from lesson where course_id=:courseId and teacher_id=:teacherId)", nativeQuery = true)
-    List<Attendance> findByCourseIdAndTeacher(Integer courseId, Integer teacherId);
+            "select id from lesson " +
+            "where _group=:group and course_id=:courseId and teacher_id=:teacherId)", nativeQuery = true)
+    List<Attendance> findByCourseGroupAndTeacher(Integer courseId, String group, Integer teacherId);
 }

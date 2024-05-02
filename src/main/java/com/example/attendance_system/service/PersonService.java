@@ -111,4 +111,11 @@ public class PersonService {
     public User getCurrentUser() {
         return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
+
+    public List<PersonDto> getAllStudentsByCourseGroup(Integer courseId, String group, Integer exceptionalStudentId) {
+        return personRepository.findStudentsByCourseGroup(courseId, group, exceptionalStudentId)
+                .stream()
+                .map(PersonDtoFactory::convert)
+                .toList();
+    }
 }

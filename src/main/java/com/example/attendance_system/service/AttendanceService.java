@@ -1,9 +1,6 @@
 package com.example.attendance_system.service;
 
-import com.example.attendance_system.dto.AttendanceDto;
-import com.example.attendance_system.dto.AttendanceRecordDto;
-import com.example.attendance_system.dto.AttendanceRequest;
-import com.example.attendance_system.dto.S3Request;
+import com.example.attendance_system.dto.*;
 import com.example.attendance_system.exception.AttendanceNotFoundException;
 import com.example.attendance_system.exception.InvalidAccessException;
 import com.example.attendance_system.model.*;
@@ -145,6 +142,7 @@ public class AttendanceService {
         User teacher = personService.getCurrentUser();
 
         courseService.isTeacherWithoutCourse(courseId, teacher.getId());
+        lessonService.isTeacherWithoutLesson(courseId, group, teacher.getId());
 
         return getAttendanceRecordsByCourse(courseId, group);
     }
@@ -153,7 +151,7 @@ public class AttendanceService {
         User student = personService.getCurrentUser();
 
         courseService.isStudentWithoutCourse(courseId, student.getId());
-
+        lessonService.isStudentWithoutLesson(courseId, group, student.getId());
         return attendanceRecordRepository.findByCourseGroupAndStudent(courseId, group, student.getId())
                 .stream()
                 .map(AttendanceRecordDtoFactory::convert)
@@ -249,14 +247,22 @@ public class AttendanceService {
         absenceReasonRepository.save(absenceReason);
     }
 
-    public List<AttendanceDto> getAttendancesForTeacher(Integer courseId) {
+    public List<AttendanceDto> getAttendancesForTeacher(Integer courseId, String group) {
         User teacher = personService.getCurrentUser();
 
         courseService.isTeacherWithoutCourse(courseId, teacher.getId());
-        List<Attendance> byCourseIdAndTeacher = attendanceRepository.findByCourseIdAndTeacher(courseId, teacher.getId());
-        return byCourseIdAndTeacher
+        lessonService.isTeacherWithoutLesson(courseId, group, teacher.getId());
+        return attendanceRepository.findByCourseGroupAndTeacher(courseId, group, teacher.getId())
                 .stream()
                 .map(AttendanceDtoFactory::convert)
                 .toList();
+    }
+
+    public List<PersonDto> getAllStudentsByCourseGroup(Integer courseId, String group) {
+        User student = personService.getCurrentUser();
+        courseService.isStudentWithoutCourse(courseId, student.getId());
+        lessonService.isStudentWithoutLesson(courseId, group, student.getId());
+
+        return personService.getAllStudentsByCourseGroup(courseId, group, student.getId());
     }
 }

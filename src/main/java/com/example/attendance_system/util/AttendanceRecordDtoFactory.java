@@ -15,6 +15,13 @@ public class AttendanceRecordDtoFactory {
                         .attendanceType(attendanceRecord.getAttendanceType())
                         .courseGroup(attendanceRecord.getGroup())
                         .time(attendanceRecord.getAttendance().getLocalDateTime());
+
+        if(attendanceRecord.getDesignatedUser() != null){
+            Person designatedStudent = attendanceRecord.getDesignatedUser().getPerson();
+            attendanceRecordDtoBuilder.designatedStudent(String.format("%s %s",
+                    designatedStudent.getName(),
+                    designatedStudent.getSurname()));
+        }
         return attendanceRecordDtoBuilder.build();
     }
 }
