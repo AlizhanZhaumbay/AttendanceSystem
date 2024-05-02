@@ -10,6 +10,7 @@ public class PersonDtoFactory {
                 person.getName(),
                 person.getSurname(),
                 person.getEmail(),
-                person.getBirthDate());
+                person.getBirthDate(),
+                person.getUser().getId());
     }
 }

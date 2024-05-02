@@ -19,6 +19,8 @@ import java.util.List;
 public class PersonController {
 
     private final PersonService personService;
+    public static final String TEACHER_FETCH_STUDENTS = "/api/v1/teacher/courses/{course_id}/{group}/students";
+
     public static final String ADMIN_FETCH_STUDENTS = "/api/v1/admin/students";
     public static final String ADMIN_FETCH_STUDENT_BY_ID = "/api/v1/admin/students/{student_id}";
     public static final String ADMIN_FETCH_TEACHERS = "/api/v1/admin/teachers";
@@ -29,6 +31,12 @@ public class PersonController {
     @GetMapping(ADMIN_FETCH_STUDENTS)
     public ResponseEntity<List<PersonDto>> getAllStudents() {
         return ResponseEntity.ok(personService.getAllStudents());
+    }
+
+    @GetMapping(TEACHER_FETCH_STUDENTS)
+    public ResponseEntity<List<PersonDto>> getAllStudentsFromCourse(@PathVariable("course_id") Integer courseId,
+                                                                    @PathVariable("group") String group){
+        return ResponseEntity.ok(personService.getAllStudentsByCourseGroup(courseId, group));
     }
 
     @GetMapping(ADMIN_FETCH_STUDENT_BY_ID)

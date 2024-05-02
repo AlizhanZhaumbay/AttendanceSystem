@@ -18,8 +18,8 @@ public class Person {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Transient
-    private Integer userId;
+    @OneToOne(mappedBy = "person")
+    private User user;
 
     private String name;
 

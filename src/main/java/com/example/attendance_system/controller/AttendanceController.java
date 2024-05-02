@@ -37,6 +37,9 @@ public class AttendanceController {
             "/api/v1/admin/attendance/courses/{course_id}/{group}";
     public static final String TEACHER_SEE_ATTENDANCE_RECORDS =
             "/api/v1/teacher/attendance/courses/{course_id}/{group}";
+
+    public static final String TEACHER_SEE_STUDENTS_ATTENDANCE_RECORDS =
+            "/api/v1/teacher/attendance/courses/{course_id}/{group}/students/{student_id}";
     public static final String STUDENT_SEE_ATTENDANCE_RECORDS =
             "/api/v1/student/attendance/courses/{course_id}/{group}";
     public static final String STUDENT_ATTENDANCE_GIVE_PERMISSION =
@@ -53,7 +56,6 @@ public class AttendanceController {
 
     public static final String STUDENTS_LIST_TO_GIVE_PERMISSION =
             "/api/v1/student/courses/{course_id}/{group}/students";
-
 
 
     @PostMapping(path = TEACHER_TAKE_ATTENDANCE_BY_QR, produces = MediaType.IMAGE_JPEG_VALUE)
@@ -87,6 +89,15 @@ public class AttendanceController {
             @PathVariable("course_id") Integer courseId,
             @PathVariable("group") String group) {
         return ResponseEntity.ok(attendanceService.getAttendanceRecordsByGroupForTeacher(courseId, group));
+    }
+
+    @GetMapping(TEACHER_SEE_STUDENTS_ATTENDANCE_RECORDS)
+    public ResponseEntity<List<AttendanceRecordDto>> getAttendanceRecordsByStudentForTeacher(
+            @PathVariable("course_id") Integer courseId,
+            @PathVariable("group") String group,
+            @PathVariable("student_id") Integer studentId
+    ) {
+        return ResponseEntity.ok(attendanceService.getAttendanceRecordsByCourseForStudent(courseId, group, studentId));
     }
 
     @GetMapping(STUDENT_SEE_ATTENDANCE_RECORDS)
@@ -132,13 +143,13 @@ public class AttendanceController {
 
     @GetMapping(TEACHER_SET_ATTENDANCE_LIST)
     public ResponseEntity<List<AttendanceDto>> setAttendanceList(@PathVariable("course_id") Integer courseId,
-                                                                 @PathVariable("group") String group){
+                                                                 @PathVariable("group") String group) {
         return ResponseEntity.ok(attendanceService.getAttendancesForTeacher(courseId, group));
     }
 
     @GetMapping(STUDENTS_LIST_TO_GIVE_PERMISSION)
     public ResponseEntity<List<PersonDto>> studentsList(@PathVariable("course_id") Integer courseId,
-                                                        @PathVariable("group") String group){
+                                                        @PathVariable("group") String group) {
         return ResponseEntity.ok(attendanceService.getAllStudentsByCourseGroup(courseId, group));
     }
 }

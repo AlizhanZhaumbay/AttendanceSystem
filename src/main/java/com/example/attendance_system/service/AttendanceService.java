@@ -147,15 +147,22 @@ public class AttendanceService {
         return getAttendanceRecordsByCourse(courseId, group);
     }
 
-    public List<AttendanceRecordDto> getAttendanceRecordsByCourseForStudent(Integer courseId, String group) {
-        User student = personService.getCurrentUser();
+    public List<AttendanceRecordDto> getAttendanceRecordsByCourseForStudent(Integer courseId,
+                                                                            String group,
+                                                                            Integer studentId) {
 
-        courseService.isStudentWithoutCourse(courseId, student.getId());
-        lessonService.isStudentWithoutLesson(courseId, group, student.getId());
-        return attendanceRecordRepository.findByCourseGroupAndStudent(courseId, group, student.getId())
+        courseService.isStudentWithoutCourse(courseId, studentId);
+        lessonService.isStudentWithoutLesson(courseId, group, studentId);
+        return attendanceRecordRepository.findByCourseGroupAndStudent(courseId, group, studentId)
                 .stream()
                 .map(AttendanceRecordDtoFactory::convert)
                 .toList();
+    }
+
+    public List<AttendanceRecordDto> getAttendanceRecordsByCourseForStudent(Integer courseId, String group) {
+        User student = personService.getCurrentUser();
+
+        return getAttendanceRecordsByCourseForStudent(courseId, group, student.getId());
     }
 
     public void checkAttendanceExists(Integer attendanceId) {

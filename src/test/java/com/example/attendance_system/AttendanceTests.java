@@ -4,6 +4,7 @@ import com.example.attendance_system.auth.AuthenticationController;
 import com.example.attendance_system.auth.AuthenticationResponse;
 import com.example.attendance_system.auth.RegisterRequest;
 import com.example.attendance_system.controller.AttendanceController;
+import com.example.attendance_system.controller.PersonController;
 import com.example.attendance_system.dto.AttendanceRecordDto;
 import com.example.attendance_system.dto.AttendanceRequest;
 import com.example.attendance_system.model.*;
@@ -279,6 +280,86 @@ public class AttendanceTests {
                 ).andReturn();
 
         compareForEquationResponseLengthAndExpectedLength(mvcResult, 6);
+    }
+
+    @Test
+    @Transactional
+    @DirtiesContext
+    @SneakyThrows
+    void seeStudentsListToSeeAttendanceRecords(){
+        User student1 = userRepository.save(getUser(Role.STUDENT));
+        User student2 = userRepository.save(getUser(Role.STUDENT));
+
+        student1.getPerson().setUser(student1);
+        student2.getPerson().setUser(student2);
+
+        String teacherAccessToken = getAccessToken(Role.TEACHER);
+        User teacher = getUserByAccessToken(teacherAccessToken);
+
+
+
+        Course course = saveCourse();
+        String group = "02-n";
+        saveLesson(teacher, course, List.of(student1, student2), group);
+
+        var postfix = PersonController.TEACHER_FETCH_STUDENTS
+                .replace("{course_id}", String.valueOf(course.getId()))
+                .replace("{group}", group);
+
+        var requestBuilder = getRequestBuilder("GET", postfix, teacherAccessToken, null);
+
+        MvcResult mvcResult = mockMvc.perform(requestBuilder).andReturn();
+        compareForEquationResponseLengthAndExpectedLength(mvcResult, 2);
+    }
+
+
+    @Test
+    @Transactional
+    @DirtiesContext
+    @SneakyThrows
+    void seeAttendancesOfStudentForTeacherTest() {
+
+        User student1 = userRepository.save(getUser(Role.STUDENT));
+        User student2 = userRepository.save(getUser(Role.STUDENT));
+
+        String teacherAccessToken = getAccessToken(Role.TEACHER);
+        User teacher = getUserByAccessToken(teacherAccessToken);
+
+
+
+        Course course = saveCourse();
+        String group = "02-n";
+        Lesson lesson = saveLesson(teacher, course, List.of(student1, student2), group);
+
+        Attendance attendance1 = attendanceRepository.save(getAttendance(lesson));
+        Attendance attendance2 = attendanceRepository.save(getAttendance(lesson));
+        Attendance attendance3 = attendanceRepository.save(getAttendance(lesson));
+        attendanceRecordRepository.saveAll(
+                List.of(
+                        getAttendanceRecord(AttendanceType.QR, student1, attendance1, AttendanceStatus.PRESENT),
+                        getAttendanceRecord(AttendanceType.MANUAL, student2, attendance1, AttendanceStatus.PRESENT),
+
+                        getAttendanceRecord(null, student1, attendance2, AttendanceStatus.ABSENCE),
+                        getAttendanceRecord(AttendanceType.MANUAL, student2, attendance2, AttendanceStatus.PRESENT),
+
+                        getAttendanceRecord(null, student1, attendance3, AttendanceStatus.ABSENCE),
+                        getAttendanceRecord(null, student2, attendance3, AttendanceStatus.ABSENCE)
+                ));
+
+
+        var postfix = AttendanceController.TEACHER_SEE_STUDENTS_ATTENDANCE_RECORDS
+                .replace("{course_id}", String.valueOf(course.getId()))
+                .replace("{group}", group)
+                .replace("{student_id}", String.valueOf(student1.getId()));
+        var requestBuilder = getRequestBuilder("GET", postfix, teacherAccessToken, null);
+
+        MvcResult mvcResult = mockMvc.perform(requestBuilder)
+                .andExpectAll(
+                        status().isOk(),
+                        content().contentType(MediaType.APPLICATION_JSON)
+                ).andReturn();
+
+        compareForEquationResponseLengthAndExpectedLength(mvcResult, 3);
     }
 
 

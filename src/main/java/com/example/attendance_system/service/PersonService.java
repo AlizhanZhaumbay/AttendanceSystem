@@ -118,4 +118,8 @@ public class PersonService {
                 .map(PersonDtoFactory::convert)
                 .toList();
     }
+
+    public List<PersonDto> getAllStudentsByCourseGroup(Integer courseId, String group) {
+        return getAllStudentsByCourseGroup(courseId, group, 0);
+    }
 }
