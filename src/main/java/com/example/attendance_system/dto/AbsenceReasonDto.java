@@ -17,6 +17,12 @@ public record AbsenceReasonDto(
 
         LocalDateTime requestedDate,
 
+        @JsonProperty("course_code")
+        String courseCode,
+
+        @JsonProperty("group")
+        String group,
+
         @JsonProperty("file_path")
         String filePath) {
 }
