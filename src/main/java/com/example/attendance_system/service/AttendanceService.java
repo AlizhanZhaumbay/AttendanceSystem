@@ -19,10 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.awt.image.BufferedImage;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -193,7 +190,7 @@ public class AttendanceService {
             throw new AttendanceNotFoundException(ExceptionMessage.attendanceNotFoundWithLessonException(attendanceId, lessonId));
     }
 
-    public Integer giveAccessToStudent(Integer courseId, String group, Integer consumerStudentId) {
+    public String giveAccessToStudent(Integer courseId, String group, Integer consumerStudentId) {
         User attendanceProducerStudent = personService.getCurrentUser();
         lessonService.isStudentWithoutLesson(courseId, group, attendanceProducerStudent.getId());
 
@@ -215,7 +212,8 @@ public class AttendanceService {
         }
         attendanceRepository.createPermission(attendanceProducerStudent.getId(), consumerStudentId, courseId);
 
-        return consumerStudentId;
+        User consumer = userRepository.findById(consumerStudentId).get();
+        return consumer.getPerson().getName();
     }
 
     private QrAccessToken validateAccessToken(String accessToken) {

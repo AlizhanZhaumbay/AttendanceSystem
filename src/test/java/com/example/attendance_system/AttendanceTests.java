@@ -465,8 +465,8 @@ public class AttendanceTests {
         var postfixGiveAccess = String.format(
                         AttendanceController.STUDENT_ATTENDANCE_GIVE_PERMISSION
                                 .replace("{course_id}", String.valueOf(course.getId()))
-                                .replace("{group}", group))
-                .replace("{student_id}", String.valueOf(student2.getId()));
+                                .replace("{group}", group)
+                                .replace("{student_id}", String.valueOf(student2.getId())));
         var requestBuilderGiveAccess =
                 getRequestBuilder("POST", postfixGiveAccess, student1AccessToken, null);
 

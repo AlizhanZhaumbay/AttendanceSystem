@@ -110,7 +110,7 @@ public class AttendanceController {
 
 
     @PostMapping(STUDENT_ATTENDANCE_GIVE_PERMISSION)
-    public ResponseEntity<Integer> giveAccessToTakeAttendance(
+    public ResponseEntity<String> giveAccessToTakeAttendance(
             @PathVariable("student_id") Integer studentId,
             @PathVariable("course_id") Integer courseId,
             @PathVariable("group") String group) {
