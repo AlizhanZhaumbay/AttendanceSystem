@@ -27,4 +27,20 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Integer>
             "select id from lesson " +
             "where _group=:group and course_id=:courseId and teacher_id=:teacherId)", nativeQuery = true)
     List<Attendance> findByCourseGroupAndTeacher(Integer courseId, String group, Integer teacherId);
+
+    @Query(value = "SELECT CASE WHEN _limit <= 0 THEN true ELSE false END FROM attendance_permission " +
+            "WHERE producer_id=:producerId AND consumer_id=:consumerId", nativeQuery = true)
+    boolean checkLimitReached(Integer producerId, Integer consumerId);
+
+    @Transactional
+    @Modifying
+    @Query(value = "update attendance_permission set _limit = _limit - 1 where consumer_id=:consumerId and producer_id=:producerId",
+            nativeQuery = true)
+    void decreaseLimit(Integer producerId, Integer consumerId);
+
+    @Transactional
+    @Modifying
+    @Query(value = "update attendance_permission set _limit = 0 where consumer_id=:consumerId and producer_id=:producerId",
+            nativeQuery = true)
+    void resetLimit(Integer producerId, Integer consumerId);
 }

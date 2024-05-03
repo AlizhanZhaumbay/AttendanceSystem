@@ -37,4 +37,9 @@ public class ExceptionHandlerService {
                 .badRequest()
                 .body(exception.getErrorMessages());
     }
+
+    @ExceptionHandler({AttendanceLimitHasBeenReachedException.class})
+    public ResponseEntity<String> attendanceLimitHasBeenReachedException(AttendanceLimitHasBeenReachedException exception){
+        return ResponseEntity.ok(exception.getMessage());
+    }
 }

@@ -1,15 +1,13 @@
 package com.example.attendance_system.service;
 
 import com.example.attendance_system.dto.*;
+import com.example.attendance_system.exception.AttendanceLimitHasBeenReachedException;
 import com.example.attendance_system.exception.AttendanceNotFoundException;
 import com.example.attendance_system.exception.InvalidAccessException;
 import com.example.attendance_system.model.*;
 import com.example.attendance_system.qr.QrCodeService;
 import com.example.attendance_system.repo.*;
-import com.example.attendance_system.util.AttendanceDtoFactory;
-import com.example.attendance_system.util.AttendanceRecordDtoFactory;
-import com.example.attendance_system.util.ExceptionMessage;
-import com.example.attendance_system.util.ObjectValidator;
+import com.example.attendance_system.util.*;
 import com.google.zxing.WriterException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -117,6 +115,11 @@ public class AttendanceService {
         if (haveAccess) {
             User producer = userRepository.findProducerByConsumerId(student.getId());
 
+            boolean hasLimitBeenReached = attendanceRepository.checkLimitReached(producer.getId(), student.getId());
+
+            if(hasLimitBeenReached){
+                throw new AttendanceLimitHasBeenReachedException("Unable to take attendance for designated user, limit has been reached");
+            }
             AttendanceRecord attendanceRecordForProducer = attendanceRecordRepository
                     .findByAttendanceIdAndStudentId(attendanceId, producer.getId());
 
@@ -126,6 +129,7 @@ public class AttendanceService {
             attendanceRecordForProducer.setDesignatedUser(student);
             attendanceRecordRepository.saveAndFlush(attendanceRecordForProducer);
 
+            attendanceRepository.decreaseLimit(producer.getId(), student.getId());
         }
         return student.getId();
     }
@@ -197,7 +201,6 @@ public class AttendanceService {
                     ExceptionMessage.attendanceAccessAlreadyTaken(consumerStudentId)
             );
         }
-
         attendanceRepository.createPermission(attendanceProducerStudent.getId(), consumerStudentId, courseId);
 
         return consumerStudentId;
@@ -235,15 +238,19 @@ public class AttendanceService {
         attendanceRecord.setAbsenceReason(absenceReason);
 
         attendanceRecordRepository.save(attendanceRecord);
-        s3Service.putObject(S3Request.builder()
-                .id(fileId)
-                .content(file)
-                .build());
+        saveToS3(fileId, file);
 
         return fileId;
     }
 
-    public void appealAccept(Integer attendanceRecordId, AbsenceReasonStatus status) {
+    public void saveToS3(String fileId, MultipartFile file){
+        s3Service.putObject(S3Request.builder()
+                .id(fileId)
+                .content(file)
+                .build());
+    }
+
+    public void appealAct(Integer attendanceRecordId, AbsenceReasonStatus status) {
 
         AttendanceRecord attendanceRecord =
                 attendanceRecordRepository.findById(attendanceRecordId)
@@ -271,5 +278,13 @@ public class AttendanceService {
         lessonService.isStudentWithoutLesson(courseId, group, student.getId());
 
         return personService.getAllStudentsByCourseGroup(courseId, group, student.getId());
+    }
+
+    public List<AbsenceReasonDto> getAppeals(Integer courseId, String group) {
+
+        return absenceReasonRepository.findByCourseAndGroup(courseId, group)
+                .stream()
+                .map(AbsenceReasonDtoFactory::convert)
+                .toList();
     }
 }

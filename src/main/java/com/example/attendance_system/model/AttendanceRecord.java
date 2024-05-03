@@ -46,4 +46,5 @@ public class AttendanceRecord {
 
     @Column(name = "_group")
     private String group;
+
 }

@@ -24,6 +24,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -36,11 +37,10 @@ import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Supplier;
 
-import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @Log4j2
@@ -81,6 +81,8 @@ public class AttendanceTests {
 
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private AbsenceReasonRepository absenceReasonRepository;
 
 
     @Test
@@ -286,7 +288,7 @@ public class AttendanceTests {
     @Transactional
     @DirtiesContext
     @SneakyThrows
-    void seeStudentsListToSeeAttendanceRecords(){
+    void seeStudentsListToSeeAttendanceRecords() {
         User student1 = userRepository.save(getUser(Role.STUDENT));
         User student2 = userRepository.save(getUser(Role.STUDENT));
 
@@ -295,7 +297,6 @@ public class AttendanceTests {
 
         String teacherAccessToken = getAccessToken(Role.TEACHER);
         User teacher = getUserByAccessToken(teacherAccessToken);
-
 
 
         Course course = saveCourse();
@@ -324,7 +325,6 @@ public class AttendanceTests {
 
         String teacherAccessToken = getAccessToken(Role.TEACHER);
         User teacher = getUserByAccessToken(teacherAccessToken);
-
 
 
         Course course = saveCourse();
@@ -466,44 +466,14 @@ public class AttendanceTests {
         createTable();
         String student1AccessToken = getAccessToken(Role.STUDENT);
         User student1 = getUserByAccessToken(student1AccessToken);
+        setPerson(student1);
 
         User student2 = getUser(Role.STUDENT);
+        setPerson(student2);
         User student3 = getUser(Role.STUDENT);
+        setPerson(student3);
         User student4 = getUser(Role.STUDENT);
-        userRepository.saveAll(List.of(student2, student3, student4));
-
-        String group = "02-P";
-        String anotherGroup = "01-P";
-
-        Course course = saveCourse();
-        saveLesson(null, course, List.of(student1, student2, student3), group);
-        saveLesson(null, course, List.of(student1, student4), anotherGroup);
-        var postfixGiveAccess = AttendanceController.STUDENTS_LIST_TO_GIVE_PERMISSION
-                        .replace("{course_id}", String.valueOf(course.getId()))
-                        .replace("{group}", anotherGroup);
-        var requestBuilderGiveAccess =
-                getRequestBuilder("GET", postfixGiveAccess, student1AccessToken, null);
-
-        MvcResult mvcResult = mockMvc.perform(requestBuilderGiveAccess)
-                .andExpectAll(
-                        status().isOk(),
-                        content().contentType(MediaType.APPLICATION_JSON)
-                ).andReturn();
-        compareForEquationResponseLengthAndExpectedLength(mvcResult, 1);
-    }
-
-    @Test
-    @Transactional
-    @DirtiesContext
-    @SneakyThrows
-    void studentAppealTest() {
-        createTable();
-        String student1AccessToken = getAccessToken(Role.STUDENT);
-        User student1 = getUserByAccessToken(student1AccessToken);
-
-        User student2 = getUser(Role.STUDENT);
-        User student3 = getUser(Role.STUDENT);
-        User student4 = getUser(Role.STUDENT);
+        setPerson(student4);
         userRepository.saveAll(List.of(student2, student3, student4));
 
         String group = "02-P";
@@ -524,6 +494,202 @@ public class AttendanceTests {
                         content().contentType(MediaType.APPLICATION_JSON)
                 ).andReturn();
         compareForEquationResponseLengthAndExpectedLength(mvcResult, 1);
+    }
+
+    @Test
+    @Transactional
+    @DirtiesContext
+    @SneakyThrows
+    void studentAppealTest() {
+
+        String studentAccessToken = getAccessToken(Role.STUDENT);
+        User student = getUserByAccessToken(studentAccessToken);
+
+        String group = "02-P";
+
+        Course course = saveCourse();
+        Lesson lesson = saveLesson(null, course, List.of(student), group);
+        Attendance attendance = attendanceRepository.save(getAttendance(lesson));
+        AttendanceRecord attendanceRecord =
+                attendanceRecordRepository.save(
+                        getAttendanceRecord(null, student, attendance, AttendanceStatus.ABSENCE));
+
+
+        var postfixGiveAccess = AttendanceController.STUDENT_ATTENDANCE_APPEAL
+                .replace("{attendance_record_id}", String.valueOf(attendanceRecord.getId()));
+
+        var requestBuilder = multipart(
+                BASE_URL + postfixGiveAccess
+        )
+                .file(new MockMultipartFile("file", new byte[]{}))
+                .header("Authorization", getHeaderAuthorization(studentAccessToken))
+                .param("reason", String.valueOf(Reason.HEALTH));
+
+        mockMvc.perform(requestBuilder)
+                .andExpectAll(
+                        status().isOk(),
+                        content().contentType(MediaType.valueOf("text/plain;charset=ISO-8859-1"))
+                ).andReturn();
+
+    }
+
+    @Test
+    @Transactional
+    @DirtiesContext
+    @SneakyThrows
+    void adminAcceptAppealTest() {
+        String adminAccessToken = getAccessToken(Role.ADMIN);
+
+        User student = userRepository.save(getUser(Role.STUDENT));
+        Attendance attendance = attendanceRepository.save(getAttendance(null));
+        AbsenceReason absenceReason = absenceReasonRepository.save(AbsenceReason
+                .builder()
+                .reason(Reason.HEALTH)
+                .build());
+        AttendanceRecord attendanceRecord = attendanceRecordRepository.save(
+                AttendanceRecord.builder()
+                        .absenceReason(absenceReason)
+                        .attendanceStatus(AttendanceStatus.ABSENCE)
+                        .attendance(attendance)
+                        .student(student)
+                        .build());
+        var postfix = AttendanceController.ADMIN_ATTENDANCE_APPEAL_ACCEPT
+                .replace("{attendance_record_id}", String.valueOf(attendanceRecord.getId()));
+        var requestBuilder = getRequestBuilder("POST", postfix, adminAccessToken, null)
+                .header("Authorization", getHeaderAuthorization(adminAccessToken));
+
+        mockMvc.perform(requestBuilder)
+                .andExpectAll(
+                        status().isOk(),
+                        content().string("Approved"));
+    }
+
+    @Test
+    @Transactional
+    @DirtiesContext
+    @SneakyThrows
+    void adminAcceptDenyTest() {
+        String adminAccessToken = getAccessToken(Role.ADMIN);
+
+        User student = userRepository.save(getUser(Role.STUDENT));
+        Attendance attendance = attendanceRepository.save(getAttendance(null));
+        AbsenceReason absenceReason = absenceReasonRepository.save(AbsenceReason
+                .builder()
+                .reason(Reason.HEALTH)
+                .build());
+        AttendanceRecord attendanceRecord = attendanceRecordRepository.save(
+                AttendanceRecord.builder()
+                        .absenceReason(absenceReason)
+                        .attendanceStatus(AttendanceStatus.ABSENCE)
+                        .attendance(attendance)
+                        .student(student)
+                        .build());
+        var postfix = AttendanceController.ADMIN_ATTENDANCE_APPEAL_DENY
+                .replace("{attendance_record_id}", String.valueOf(attendanceRecord.getId()));
+        var requestBuilder = getRequestBuilder("POST", postfix, adminAccessToken, null)
+                .header("Authorization", getHeaderAuthorization(adminAccessToken));
+
+        mockMvc.perform(requestBuilder)
+                .andExpectAll(
+                        status().isOk(),
+                        content().string("Denied"));
+    }
+
+    @Test
+    @Transactional
+    @DirtiesContext
+    @SneakyThrows
+    void adminAppealsTest() {
+        String adminAccessToken = getAccessToken(Role.ADMIN);
+        User student1 = userRepository.save(getUser(Role.STUDENT));
+        User student2 = userRepository.save(getUser(Role.STUDENT));
+        String group = "02-N";
+        Course course = saveCourse();
+        Lesson lesson = saveLesson(null, course, List.of(student1, student2), group);
+        Attendance attendance = attendanceRepository.save(getAttendance(lesson));
+
+        AbsenceReason absenceReason1 = absenceReasonRepository.save(AbsenceReason
+                .builder()
+                .reason(Reason.HEALTH)
+                .requestedDate(LocalDateTime.now())
+                .build());
+
+        AbsenceReason absenceReason2 = absenceReasonRepository.save(AbsenceReason
+                .builder()
+                .reason(Reason.HEALTH)
+                .requestedDate(LocalDateTime.now())
+                .build());
+
+        AttendanceRecord attendanceRecord1 =
+                attendanceRecordRepository.save(getAttendanceRecord(null, student1, attendance, AttendanceStatus.ABSENCE));
+        attendanceRecord1.setAbsenceReason(absenceReason1);
+        absenceReason1.setAttendanceRecord(attendanceRecord1);
+
+        AttendanceRecord attendanceRecord2 =
+                attendanceRecordRepository.save(getAttendanceRecord(null, student1, attendance, AttendanceStatus.ABSENCE));
+        attendanceRecord2.setAbsenceReason(absenceReason2);
+        absenceReason2.setAttendanceRecord(attendanceRecord2);
+
+
+        var postfix = AttendanceController.ADMIN_SEE_ABSENCE_APPEALS
+                .replace("{course_id}", String.valueOf(course.getId()))
+                .replace("{group}", group);
+
+        var requestBuilder = getRequestBuilder("GET", postfix, adminAccessToken, null);
+
+        MvcResult mvcResult = mockMvc.perform(requestBuilder)
+                .andExpectAll(status().isOk()).andReturn();
+
+        compareForEquationResponseLengthAndExpectedLength(mvcResult, 2);
+    }
+
+    @Test
+    @Transactional
+    @DirtiesContext
+    @SneakyThrows
+    void attendancePermissionLimitHasBeenReachedTest() {
+        createTable();
+        String student1AccessToken = getAccessToken(Role.STUDENT);
+        String student2AccessToken = getAccessToken(Role.STUDENT);
+        User student1 = getUserByAccessToken(student1AccessToken);
+        User student2 = getUserByAccessToken(student2AccessToken);
+
+        String teacherAccessToken = getAccessToken(Role.TEACHER);
+        User teacher = getUserByAccessToken(teacherAccessToken);
+
+        String group = "02-P";
+
+        Course course = saveCourse();
+        Lesson lesson =
+                saveLesson(teacher, course, List.of(student1, student2), group);
+
+        Attendance attendance = attendanceRepository.save(getAttendance(lesson));
+
+        var postfixGiveAccess = String.format(
+                        AttendanceController.STUDENT_ATTENDANCE_GIVE_PERMISSION
+                                .replace("{course_id}", String.valueOf(course.getId()))
+                                .replace("{group}", group))
+                .replace("{student_id}", String.valueOf(student2.getId()));
+        var requestBuilderGiveAccess =
+                getRequestBuilder("POST", postfixGiveAccess, student1AccessToken, null);
+
+        mockMvc.perform(requestBuilderGiveAccess)
+                .andExpectAll(
+                        status().isOk(),
+                        content().contentType(MediaType.APPLICATION_JSON)
+                );
+
+        attendanceRepository.resetLimit(student1.getId(), student2.getId());
+
+        byte[] qr = createAttendanceQr(teacherAccessToken, attendance, lesson);
+        var requestBuilderAttend =
+                get(qrCodeService.decodeQr(qr))
+                        .header("Authorization", getHeaderAuthorization(student2AccessToken));
+        mockMvc.perform(requestBuilderAttend)
+                .andExpectAll(
+                        status().isOk(),
+                        content().string("Unable to take attendance for designated user, limit has been reached")
+                );
     }
 
     @SneakyThrows
@@ -676,6 +842,10 @@ public class AttendanceTests {
                 .role(role)
                 .build();
 
+    }
+
+    private void setPerson(User user){
+        user.getPerson().setUser(user);
     }
 
     @Transactional

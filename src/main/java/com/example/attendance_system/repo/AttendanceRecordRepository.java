@@ -11,7 +11,7 @@ public interface AttendanceRecordRepository extends JpaRepository<AttendanceReco
     AttendanceRecord findByAttendanceIdAndStudentId(Integer attendanceId, Integer studentId);
 
     @Query(value = "select exists (select 1 from attendance_permission " +
-            "where consumer_id=:studentId and course_id=:courseId and _limit > 0)", nativeQuery = true)
+            "where consumer_id=:studentId and course_id=:courseId)", nativeQuery = true)
     boolean checkStudentHaveAccessesForLesson(Integer studentId, Integer courseId);
 
     @Query(nativeQuery = true, value = "select exists(select 1 from attendance_permission " +

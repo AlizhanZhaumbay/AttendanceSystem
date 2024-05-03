@@ -1,9 +1,6 @@
 package com.example.attendance_system.controller;
 
-import com.example.attendance_system.dto.AttendanceDto;
-import com.example.attendance_system.dto.AttendanceRecordDto;
-import com.example.attendance_system.dto.AttendanceRequest;
-import com.example.attendance_system.dto.PersonDto;
+import com.example.attendance_system.dto.*;
 import com.example.attendance_system.model.AbsenceReasonStatus;
 import com.example.attendance_system.model.Reason;
 import com.example.attendance_system.service.AttendanceService;
@@ -56,6 +53,9 @@ public class AttendanceController {
 
     public static final String STUDENTS_LIST_TO_GIVE_PERMISSION =
             "/api/v1/student/courses/{course_id}/{group}/students";
+
+    public static final String ADMIN_SEE_ABSENCE_APPEALS =
+            "/api/v1/admin/courses/{course_id}/{group}/absence_reasons";
 
 
     @PostMapping(path = TEACHER_TAKE_ATTENDANCE_BY_QR, produces = MediaType.IMAGE_JPEG_VALUE)
@@ -120,17 +120,16 @@ public class AttendanceController {
     @PostMapping(ADMIN_ATTENDANCE_APPEAL_ACCEPT)
     public ResponseEntity<String> attendanceAcceptAppeal(
             @PathVariable("attendance_record_id") Integer attendanceRecordId) {
-        attendanceService.appealAccept(attendanceRecordId, AbsenceReasonStatus.APPROVED);
-        return ResponseEntity.ok("Success");
+        attendanceService.appealAct(attendanceRecordId, AbsenceReasonStatus.APPROVED);
+        return ResponseEntity.ok("Approved");
     }
 
     @PostMapping(ADMIN_ATTENDANCE_APPEAL_DENY)
     public ResponseEntity<String> attendanceDenyAppeal(
             @PathVariable("attendance_record_id") Integer attendanceRecordId) {
-        attendanceService.appealAccept(attendanceRecordId, AbsenceReasonStatus.DENIED);
-        return ResponseEntity.ok("Success");
+        attendanceService.appealAct(attendanceRecordId, AbsenceReasonStatus.DENIED);
+        return ResponseEntity.ok("Denied");
     }
-
     @PostMapping(value = STUDENT_ATTENDANCE_APPEAL,
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> attendanceAppeal(
@@ -151,5 +150,12 @@ public class AttendanceController {
     public ResponseEntity<List<PersonDto>> studentsList(@PathVariable("course_id") Integer courseId,
                                                         @PathVariable("group") String group) {
         return ResponseEntity.ok(attendanceService.getAllStudentsByCourseGroup(courseId, group));
+    }
+
+    @GetMapping(ADMIN_SEE_ABSENCE_APPEALS)
+    public ResponseEntity<List<AbsenceReasonDto>> adminSeeAppeals(
+            @PathVariable("course_id") Integer courseId,
+            @PathVariable("group") String group) {
+        return ResponseEntity.ok(attendanceService.getAppeals(courseId, group));
     }
 }
