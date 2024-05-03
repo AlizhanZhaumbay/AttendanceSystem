@@ -4,6 +4,7 @@ import com.example.attendance_system.dto.*;
 import com.example.attendance_system.exception.AttendanceLimitHasBeenReachedException;
 import com.example.attendance_system.exception.AttendanceNotFoundException;
 import com.example.attendance_system.exception.InvalidAccessException;
+import com.example.attendance_system.exception.InvalidRequestBodyException;
 import com.example.attendance_system.model.*;
 import com.example.attendance_system.qr.QrCodeService;
 import com.example.attendance_system.repo.*;
@@ -11,6 +12,7 @@ import com.example.attendance_system.util.*;
 import com.google.zxing.WriterException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -18,6 +20,8 @@ import java.awt.image.BufferedImage;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -56,7 +60,7 @@ public class AttendanceService {
         lessonService.isTeacherWithoutLesson(lessonId, teacher.getId());
 
         String accessToken = UUID.randomUUID().toString();
-        final String finalUrl = String.format("%s/%s", studentAttendanceTakeEndpointPrefix, accessToken);
+
 
 
         Lesson lesson = lessonService.getLessonById(lessonId);
@@ -85,6 +89,14 @@ public class AttendanceService {
                 .expiration(LocalDateTime.now().plusMinutes(3))
                 .build();
         qrAccessTokenRepository.save(qrAccessToken);
+
+        Course course = lesson.getCourse();
+        final String finalUrl = studentAttendanceTakeEndpointPrefix
+                .replace("{courseId}", String.valueOf(course.getId()))
+                .replace("{courseGroup}", String.valueOf(lesson.getGroup()))
+                .replace("{courseCode}", course.getCode())
+                .replace("{courseName}", course.getName())
+                .replace("{token}", accessToken);
 
         return qrCodeService.generateQr(finalUrl);
 //        hashOperations.getOperations().expire(getAccessTokenKey(accessToken), 2, TimeUnit.MINUTES);
@@ -219,6 +231,9 @@ public class AttendanceService {
     }
 
     public String appeal(Integer attendanceRecordId, Reason reason, MultipartFile file) {
+        if(!Objects.equals(file.getContentType(), MediaType.APPLICATION_PDF_VALUE)){
+            throw new InvalidRequestBodyException(Set.of("No pdf file provided"));
+        }
         User student = personService.getCurrentUser();
         AttendanceRecord attendanceRecord = attendanceRecordRepository.findById(attendanceRecordId)
                 .orElseThrow(() -> new AttendanceNotFoundException("Attendance Record not found."));

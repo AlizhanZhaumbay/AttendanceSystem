@@ -32,10 +32,13 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -89,7 +92,30 @@ public class AttendanceTests {
     @Transactional
     @DirtiesContext
     @SneakyThrows
-    void takeAttendanceByQrTest() {
+    void teacherTakeAttendanceByQrTest() {
+        String teacherAccessToken = getAccessToken(Role.TEACHER);
+        User teacher = getUserByAccessToken(teacherAccessToken);
+
+        Course course = saveCourse();
+
+        String group = "01-P";
+        Lesson lesson = saveLesson(teacher, course, Collections.emptyList(), group);
+        Attendance attendance = attendanceRepository.save(
+                Attendance.builder()
+                        .lesson(lesson)
+                        .id(10)
+                        .localDateTime(LocalDateTime.now())
+                        .build()
+        );
+        createAttendanceQr(teacherAccessToken, attendance, lesson);
+        log.info("Attendance Records {}", attendanceRecordRepository.findAll());
+    }
+
+    @Test
+    @Transactional
+    @DirtiesContext
+    @SneakyThrows
+    void studentTakeAttendanceByQrTest() {
         createTable();
         String teacherAccessToken = getAccessToken(Role.TEACHER);
         User teacher = getUserByAccessToken(teacherAccessToken);
@@ -114,18 +140,69 @@ public class AttendanceTests {
                         .build()
         );
         byte[] qr = createAttendanceQr(teacherAccessToken, attendance, lesson);
+        String url = qrCodeService.decodeQr(qr);
 
-        var studentTakeAttendanceRequest = get(qrCodeService.decodeQr(qr))
-                .header("Authorization", getHeaderAuthorization(student1AccessToken));
-
+        String qrAccessToken = fetchAccessToken(url);
+        var studentTakeAttendanceRequest = getRequestBuilder(
+                "GET", AttendanceController.STUDENT_PASS_ATTENDANCE_BY_QR
+                        .replace("{access_token}", qrAccessToken), student1AccessToken, null);
         mockMvc.perform(studentTakeAttendanceRequest)
                 .andExpectAll(
                         status().isOk(),
                         content().string(String.valueOf(student1.getId()))
                 );
 
+        var result = mockMvc.perform(getRequestBuilder("GET",
+                AttendanceController.TEACHER_SEE_ATTENDANCE_RECORDS
+                        .replace("{course_id}", String.valueOf(course.getId()))
+                        .replace("{group}", group),
+                teacherAccessToken, null
+        ))
+                .andExpectAll(status().isOk())
+                .andReturn();
+
+        compareForEquationResponseLengthAndExpectedLength(result, 2);
         log.info("Attendance Records {}", attendanceRecordRepository.findAll());
     }
+
+    @Test
+    @Transactional
+    @DirtiesContext
+    @SneakyThrows
+    void studentTakeAttendanceByQrTestShouldFail() {
+        createTable();
+        String teacherAccessToken = getAccessToken(Role.TEACHER);
+        User teacher = getUserByAccessToken(teacherAccessToken);
+
+        String student1AccessToken = getAccessToken(Role.STUDENT);
+        User student = getUserByAccessToken(student1AccessToken);
+
+        String notRegisteredUserAccessToken = getAccessToken(Role.STUDENT);
+        Course course = saveCourse();
+
+        String group = "01-P";
+        List<User> students = List.of(student);
+        Lesson lesson = saveLesson(teacher, course, students, group);
+        Attendance attendance = attendanceRepository.save(
+                Attendance.builder()
+                        .lesson(lesson)
+                        .id(10)
+                        .localDateTime(LocalDateTime.now())
+                        .build()
+        );
+        byte[] qr = createAttendanceQr(teacherAccessToken, attendance, lesson);
+        String url = qrCodeService.decodeQr(qr);
+
+        String qrAccessToken = fetchAccessToken(url);
+        var studentTakeAttendanceRequest = getRequestBuilder(
+                "GET", AttendanceController.STUDENT_PASS_ATTENDANCE_BY_QR
+                        .replace("{access_token}", qrAccessToken), notRegisteredUserAccessToken, null);
+        mockMvc.perform(studentTakeAttendanceRequest)
+                .andExpectAll(
+                        status().isForbidden()
+                );
+    }
+
 
     @Test
     @Transactional
@@ -400,8 +477,10 @@ public class AttendanceTests {
                 );
 
         byte[] qr = createAttendanceQr(teacherAccessToken, attendance, lesson);
+        String url = AttendanceController.STUDENT_PASS_ATTENDANCE_BY_QR
+                .replace("{access_token}", fetchAccessToken(qrCodeService.decodeQr(qr)));
         var requestBuilderAttend =
-                get(qrCodeService.decodeQr(qr))
+                get(url)
                         .header("Authorization", getHeaderAuthorization(student2AccessToken));
         mockMvc.perform(requestBuilderAttend)
                 .andExpectAll(
@@ -420,6 +499,57 @@ public class AttendanceTests {
                 status().isOk(),
                 content().contentType(MediaType.APPLICATION_JSON)
         );
+    }
+
+    @Test
+    @Transactional
+    @DirtiesContext
+    @SneakyThrows
+    void attendancePermissionLimitHasBeenReachedTest() {
+        createTable();
+        String student1AccessToken = getAccessToken(Role.STUDENT);
+        String student2AccessToken = getAccessToken(Role.STUDENT);
+        User student1 = getUserByAccessToken(student1AccessToken);
+        User student2 = getUserByAccessToken(student2AccessToken);
+
+        String teacherAccessToken = getAccessToken(Role.TEACHER);
+        User teacher = getUserByAccessToken(teacherAccessToken);
+
+        String group = "02-P";
+
+        Course course = saveCourse();
+        Lesson lesson =
+                saveLesson(teacher, course, List.of(student1, student2), group);
+
+        Attendance attendance = attendanceRepository.save(getAttendance(lesson));
+
+        var postfixGiveAccess = String.format(
+                        AttendanceController.STUDENT_ATTENDANCE_GIVE_PERMISSION
+                                .replace("{course_id}", String.valueOf(course.getId()))
+                                .replace("{group}", group))
+                .replace("{student_id}", String.valueOf(student2.getId()));
+        var requestBuilderGiveAccess =
+                getRequestBuilder("POST", postfixGiveAccess, student1AccessToken, null);
+
+        mockMvc.perform(requestBuilderGiveAccess)
+                .andExpectAll(
+                        status().isOk(),
+                        content().contentType(MediaType.APPLICATION_JSON)
+                );
+
+        attendanceRepository.resetLimit(student1.getId(), student2.getId());
+
+        byte[] qr = createAttendanceQr(teacherAccessToken, attendance, lesson);
+        String url = AttendanceController.STUDENT_PASS_ATTENDANCE_BY_QR
+                .replace("{access_token}", fetchAccessToken(qrCodeService.decodeQr(qr)));
+        var requestBuilderAttend =
+                get(url)
+                        .header("Authorization", getHeaderAuthorization(student2AccessToken));
+        mockMvc.perform(requestBuilderAttend)
+                .andExpectAll(
+                        status().isOk(),
+                        content().string("Unable to take attendance for designated user, limit has been reached")
+                );
     }
 
     @Test
@@ -521,7 +651,7 @@ public class AttendanceTests {
         var requestBuilder = multipart(
                 BASE_URL + postfixGiveAccess
         )
-                .file(new MockMultipartFile("file", new byte[]{}))
+                .file(new MockMultipartFile("file", "appeal.pdf", MediaType.APPLICATION_PDF_VALUE, new byte[]{}))
                 .header("Authorization", getHeaderAuthorization(studentAccessToken))
                 .param("reason", String.valueOf(Reason.HEALTH));
 
@@ -529,6 +659,76 @@ public class AttendanceTests {
                 .andExpectAll(
                         status().isOk(),
                         content().contentType(MediaType.valueOf("text/plain;charset=ISO-8859-1"))
+                ).andReturn();
+
+    }
+
+    @Test
+    @Transactional
+    @DirtiesContext
+    @SneakyThrows
+    void studentAppealTestNoParamsShouldFail() {
+
+        String studentAccessToken = getAccessToken(Role.STUDENT);
+        User student = getUserByAccessToken(studentAccessToken);
+
+        String group = "02-P";
+
+        Course course = saveCourse();
+        Lesson lesson = saveLesson(null, course, List.of(student), group);
+        Attendance attendance = attendanceRepository.save(getAttendance(lesson));
+        AttendanceRecord attendanceRecord =
+                attendanceRecordRepository.save(
+                        getAttendanceRecord(null, student, attendance, AttendanceStatus.ABSENCE));
+
+
+        var postfixGiveAccess = AttendanceController.STUDENT_ATTENDANCE_APPEAL
+                .replace("{attendance_record_id}", String.valueOf(attendanceRecord.getId()));
+
+        var requestBuilder = multipart(
+                BASE_URL + postfixGiveAccess
+        )
+                .header("Authorization", getHeaderAuthorization(studentAccessToken));
+
+        mockMvc.perform(requestBuilder)
+                .andExpectAll(
+                        status().isBadRequest()
+                ).andReturn();
+
+    }
+
+    @Test
+    @Transactional
+    @DirtiesContext
+    @SneakyThrows
+    void studentAppealTestIncorrectFiletypeShouldFail() {
+
+        String studentAccessToken = getAccessToken(Role.STUDENT);
+        User student = getUserByAccessToken(studentAccessToken);
+
+        String group = "02-P";
+
+        Course course = saveCourse();
+        Lesson lesson = saveLesson(null, course, List.of(student), group);
+        Attendance attendance = attendanceRepository.save(getAttendance(lesson));
+        AttendanceRecord attendanceRecord =
+                attendanceRecordRepository.save(
+                        getAttendanceRecord(null, student, attendance, AttendanceStatus.ABSENCE));
+
+
+        var postfixGiveAccess = AttendanceController.STUDENT_ATTENDANCE_APPEAL
+                .replace("{attendance_record_id}", String.valueOf(attendanceRecord.getId()));
+
+        var requestBuilder = multipart(
+                BASE_URL + postfixGiveAccess
+        )
+                .file(new MockMultipartFile("file","appeal.png",MediaType.IMAGE_PNG_VALUE,new byte[]{}))
+                .param("reason", String.valueOf(Reason.PERMITTED))
+                .header("Authorization", getHeaderAuthorization(studentAccessToken));
+
+        mockMvc.perform(requestBuilder)
+                .andExpectAll(
+                        status().isBadRequest()
                 ).andReturn();
 
     }
@@ -623,6 +823,7 @@ public class AttendanceTests {
         AttendanceRecord attendanceRecord1 =
                 attendanceRecordRepository.save(getAttendanceRecord(null, student1, attendance, AttendanceStatus.ABSENCE));
         attendanceRecord1.setAbsenceReason(absenceReason1);
+
         absenceReason1.setAttendanceRecord(attendanceRecord1);
 
         AttendanceRecord attendanceRecord2 =
@@ -643,54 +844,6 @@ public class AttendanceTests {
         compareForEquationResponseLengthAndExpectedLength(mvcResult, 2);
     }
 
-    @Test
-    @Transactional
-    @DirtiesContext
-    @SneakyThrows
-    void attendancePermissionLimitHasBeenReachedTest() {
-        createTable();
-        String student1AccessToken = getAccessToken(Role.STUDENT);
-        String student2AccessToken = getAccessToken(Role.STUDENT);
-        User student1 = getUserByAccessToken(student1AccessToken);
-        User student2 = getUserByAccessToken(student2AccessToken);
-
-        String teacherAccessToken = getAccessToken(Role.TEACHER);
-        User teacher = getUserByAccessToken(teacherAccessToken);
-
-        String group = "02-P";
-
-        Course course = saveCourse();
-        Lesson lesson =
-                saveLesson(teacher, course, List.of(student1, student2), group);
-
-        Attendance attendance = attendanceRepository.save(getAttendance(lesson));
-
-        var postfixGiveAccess = String.format(
-                        AttendanceController.STUDENT_ATTENDANCE_GIVE_PERMISSION
-                                .replace("{course_id}", String.valueOf(course.getId()))
-                                .replace("{group}", group))
-                .replace("{student_id}", String.valueOf(student2.getId()));
-        var requestBuilderGiveAccess =
-                getRequestBuilder("POST", postfixGiveAccess, student1AccessToken, null);
-
-        mockMvc.perform(requestBuilderGiveAccess)
-                .andExpectAll(
-                        status().isOk(),
-                        content().contentType(MediaType.APPLICATION_JSON)
-                );
-
-        attendanceRepository.resetLimit(student1.getId(), student2.getId());
-
-        byte[] qr = createAttendanceQr(teacherAccessToken, attendance, lesson);
-        var requestBuilderAttend =
-                get(qrCodeService.decodeQr(qr))
-                        .header("Authorization", getHeaderAuthorization(student2AccessToken));
-        mockMvc.perform(requestBuilderAttend)
-                .andExpectAll(
-                        status().isOk(),
-                        content().string("Unable to take attendance for designated user, limit has been reached")
-                );
-    }
 
     @SneakyThrows
     @Transactional
@@ -754,6 +907,15 @@ public class AttendanceTests {
             requestBuilder.content(content).contentType(MediaType.APPLICATION_JSON);
         }
         return requestBuilder;
+    }
+
+    private String fetchAccessToken(String url) {
+        String patternString = ".*&token=([^/]+)";
+        Pattern pattern = Pattern.compile(patternString);
+        Matcher matcher = pattern.matcher(url);
+
+        matcher.find();
+        return matcher.group(1);
     }
 
     private User getUserByAccessToken(String accessToken) {
@@ -844,7 +1006,7 @@ public class AttendanceTests {
 
     }
 
-    private void setPerson(User user){
+    private void setPerson(User user) {
         user.getPerson().setUser(user);
     }
 

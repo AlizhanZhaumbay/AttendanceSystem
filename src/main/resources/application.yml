@@ -30,9 +30,7 @@ application:
   endpoints:
     attendance:
       student:
-        take: ${WEBSITE_URL}/api/v1/student/attendance/take/qr
-
-WEBSITE_URL:
+        take: ${WEBSITE_URL}
 
 
 amazon-s3:

@@ -1,20 +1,19 @@
 package com.example.attendance_system;
 
+import com.example.attendance_system.auth.AuthenticationController;
 import com.example.attendance_system.auth.AuthenticationResponse;
 import com.example.attendance_system.auth.RegisterRequest;
-import com.example.attendance_system.model.Course;
-import com.example.attendance_system.model.Lesson;
-import com.example.attendance_system.model.Role;
-import com.example.attendance_system.model.User;
-import com.example.attendance_system.repo.CourseRepository;
-import com.example.attendance_system.repo.LessonRepository;
-import com.example.attendance_system.repo.TokenRepository;
+import com.example.attendance_system.controller.CourseController;
+import com.example.attendance_system.model.*;
+import com.example.attendance_system.repo.*;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import net.datafaker.Faker;
+import net.datafaker.providers.base.DateAndTime;
+import net.datafaker.providers.base.Internet;
 import net.datafaker.providers.base.Name;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,9 +23,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -51,18 +54,24 @@ public class CourseTests {
     @Autowired
     private TokenRepository tokenRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private PersonRepository personRepository;
+
     private final Faker faker = new Faker();
 
 
     private final ObjectMapper objectMapper = new ObjectMapper()
             .setSerializationInclusion(JsonInclude.Include.NON_NULL);
-    private final String BASE_URL = "http://localhost:8080/api/v1/";
+    private final String BASE_URL = "http://localhost:8080";
 
     @SneakyThrows
     @DirtiesContext
     @Transactional
     String returnsValidResponseAccessToken(Role role) {
-        var register = "/auth/register";
+        var register = AuthenticationController.USER_SIGN_UP;
         Name name = faker.name();
         String login = name.firstName();
         String password = faker.passport().valid();
@@ -93,7 +102,7 @@ public class CourseTests {
     void handleAuth_ReturnsValidCoursesForAdmin() {
         String accessToken = returnsValidResponseAccessToken(Role.ADMIN);
 
-        Course course = getCourse(1L);
+        Course course = saveCourse();
         courseRepository.save(course);
 
         var requestBuilder = get(BASE_URL + "/admin/courses")
@@ -118,8 +127,8 @@ public class CourseTests {
         User teacher1 = tokenRepository.findByToken(accessTokenTeacher1).get().getUser();
         User teacher2 = tokenRepository.findByToken(accessTokenTeacher2).get().getUser();
 
-        List<Course> coursesForTeacher1 = List.of(getCourse(1L), getCourse(2L));
-        List<Course> coursesForTeacher2 = List.of(getCourse(3L), getCourse(4L));
+        List<Course> coursesForTeacher1 = List.of(saveCourse(), saveCourse());
+        List<Course> coursesForTeacher2 = List.of(saveCourse(), saveCourse());
 
         courseRepository.saveAll(coursesForTeacher1);
         courseRepository.saveAll(coursesForTeacher2);
@@ -152,32 +161,26 @@ public class CourseTests {
     @Transactional
     @DisplayName("Get request should send all courses for Student with status 200")
     void handleAuth_ReturnsValidCoursesForStudent() {
-        String accessTokenStudent1 = returnsValidResponseAccessToken(Role.STUDENT);
-        String accessTokenStudent2 = returnsValidResponseAccessToken(Role.STUDENT);
+        String accessTokenStudent = returnsValidResponseAccessToken(Role.STUDENT);
 
-        User student1 = tokenRepository.findByToken(accessTokenStudent1).get().getUser();
-        User student2 = tokenRepository.findByToken(accessTokenStudent2).get().getUser();
 
-        List<Course> coursesForStudent1 = List.of(getCourse(1L), getCourse(2L));
-        List<Course> coursesForStudent2 = List.of(getCourse(3L), getCourse(4L));
+        User student = getUserByAccessToken(accessTokenStudent);
+        User teacher = userRepository.save(getUser(Role.TEACHER));
 
-        courseRepository.saveAll(coursesForStudent1);
-        courseRepository.saveAll(coursesForStudent2);
+        List<Course> courses = List.of(saveCourse(), saveCourse());
 
-        List<Lesson> lessonsForStudent1 = List.of(
-                getLesson(student1, coursesForStudent1.get(0), List.of(student1)),
-                getLesson(student1, coursesForStudent1.get(1), List.of(student1)));
+        courseRepository.saveAll(courses);
 
-        List<Lesson> lessonsForStudent2 = List.of(
-                getLesson(student2, coursesForStudent2.get(0), List.of(student2)),
-                getLesson(student2, coursesForStudent2.get(1), List.of(student2))
-        );
+        List<Lesson> lessonsForStudent = List.of(
+                getLesson(teacher, courses.get(0), List.of(student)),
+                getLesson(teacher, courses.get(1), List.of(student)),
+                getLesson(teacher, saveCourse(), Collections.emptyList()));
 
-        lessonRepository.saveAll(lessonsForStudent1);
-        lessonRepository.saveAll(lessonsForStudent2);
 
-        var requestBuilder = get(BASE_URL + "/student/courses")
-                .header("Authorization", "Bearer " + accessTokenStudent2);
+        lessonRepository.saveAll(lessonsForStudent);
+
+        var requestBuilder = get(BASE_URL + CourseController.STUDENT_SEE_COURSES)
+                .header("Authorization", "Bearer " + accessTokenStudent);
 
         String body = mockMvc.perform(requestBuilder)
                 .andExpectAll(
@@ -185,13 +188,30 @@ public class CourseTests {
                 ).andReturn()
                 .getResponse().getContentAsString();
 
-        Object expectedCourses = objectMapper.readValue(objectMapper.writeValueAsString(coursesForStudent2), Object.class);
+        Object expectedCourses = objectMapper.readValue(objectMapper.writeValueAsString(courses), Object.class);
         Object actualCourses = objectMapper.readValue(body, Object.class);
         assertEquals(expectedCourses, actualCourses);
     }
 
-    public Course getCourse(Long id) {
-        return new Course(id, "course" + id, "code" + id, 40, null);
+    public Course saveCourse() {
+        Random random = new Random();
+        Supplier<String> courseCode = () -> {
+            String[] coursePrefixes = {"MAT", "INF", "ENG", "SCI", "HIS", "ART", "PHY", "BIO"};
+
+            String randomPrefix = coursePrefixes[ThreadLocalRandom.current().nextInt(coursePrefixes.length)];
+
+            int randomCourseNumber = ThreadLocalRandom.current().nextInt(100, 1000);
+
+            return randomPrefix + "-" + randomCourseNumber;
+        };
+
+        return courseRepository.save(
+                Course.builder()
+                        .code(courseCode.get())
+                        .total_hours(random.nextInt(15, 40))
+                        .name(faker.educator().course())
+                        .build());
+
     }
 
     public Lesson getLesson(User teacher, Course course, List<User> students) {
@@ -201,5 +221,39 @@ public class CourseTests {
                 .teacher(teacher)
                 .dayOfWeek("Friday")
                 .build();
+    }
+
+    private User getUser(Role role) {
+        Name name = faker.name();
+        Internet internet = faker.internet();
+        DateAndTime date = faker.date();
+
+        String firstName = name.firstName();
+        String surname = name.lastName();
+        Person person = personRepository.save(Person.builder()
+                .name(firstName)
+                .surname(surname)
+                .email(internet.emailAddress())
+                .birthDate(date.birthdayLocalDate())
+                .build());
+
+        return User.builder()
+                .person(person)
+                .login(String.format("%s.%s", firstName.toLowerCase(), surname.toLowerCase()))
+                .password(internet.password(6, 13))
+                .role(role)
+                .build();
+
+    }
+
+    private User getUserByAccessToken(String accessToken) {
+        return tokenRepository.findByToken(accessToken).get().getUser();
+    }
+
+    @SneakyThrows
+    private void compareForEquationResponseLengthAndExpectedLength(MvcResult mvcResult, int expectedLength) {
+        List responseList = objectMapper.readValue(mvcResult.getResponse().getContentAsString(),
+                List.class);
+        assertEquals(expectedLength, responseList.size());
     }
 }
