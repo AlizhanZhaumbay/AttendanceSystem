@@ -701,6 +701,43 @@ public class AttendanceTests {
     @Transactional
     @DirtiesContext
     @SneakyThrows
+    void studentAppealTestIncorrectReasonShouldFail() {
+
+        String studentAccessToken = getAccessToken(Role.STUDENT);
+        User student = getUserByAccessToken(studentAccessToken);
+
+        String group = "02-P";
+
+        Course course = saveCourse();
+        Lesson lesson = saveLesson(null, course, List.of(student), group);
+        Attendance attendance = attendanceRepository.save(getAttendance(lesson));
+        AttendanceRecord attendanceRecord =
+                attendanceRecordRepository.save(
+                        getAttendanceRecord(null, student, attendance, AttendanceStatus.ABSENCE));
+
+
+        var postfixGiveAccess = AttendanceController.STUDENT_ATTENDANCE_APPEAL
+                .replace("{attendance_record_id}", String.valueOf(attendanceRecord.getId()));
+
+        var requestBuilder = multipart(
+                BASE_URL + postfixGiveAccess
+        )
+                .file(new MockMultipartFile("file", "appeal.pdf", MediaType.APPLICATION_PDF_VALUE, new byte[]{}))
+                .header("Authorization", getHeaderAuthorization(studentAccessToken))
+                .param("reason", "dasdasdasdas")
+                .header("Authorization", getHeaderAuthorization(studentAccessToken));
+
+        mockMvc.perform(requestBuilder)
+                .andExpectAll(
+                        status().isBadRequest()
+                ).andReturn();
+
+    }
+
+    @Test
+    @Transactional
+    @DirtiesContext
+    @SneakyThrows
     void studentAppealTestIncorrectFiletypeShouldFail() {
 
         String studentAccessToken = getAccessToken(Role.STUDENT);
@@ -832,9 +869,7 @@ public class AttendanceTests {
         absenceReason2.setAttendanceRecord(attendanceRecord2);
 
 
-        var postfix = AttendanceController.ADMIN_SEE_ABSENCE_APPEALS
-                .replace("{course_id}", String.valueOf(course.getId()))
-                .replace("{group}", group);
+        var postfix = AttendanceController.ADMIN_SEE_ABSENCE_APPEALS;
 
         var requestBuilder = getRequestBuilder("GET", postfix, adminAccessToken, null);
 

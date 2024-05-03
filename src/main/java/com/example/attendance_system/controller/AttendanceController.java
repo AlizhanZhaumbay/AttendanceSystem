@@ -55,7 +55,7 @@ public class AttendanceController {
             "/api/v1/student/courses/{course_id}/{group}/students";
 
     public static final String ADMIN_SEE_ABSENCE_APPEALS =
-            "/api/v1/admin/courses/{course_id}/{group}/absence_reasons";
+            "/api/v1/admin/absence_reasons";
 
 
     @PostMapping(path = TEACHER_TAKE_ATTENDANCE_BY_QR, produces = MediaType.IMAGE_JPEG_VALUE)
@@ -153,9 +153,7 @@ public class AttendanceController {
     }
 
     @GetMapping(ADMIN_SEE_ABSENCE_APPEALS)
-    public ResponseEntity<List<AbsenceReasonDto>> adminSeeAppeals(
-            @PathVariable("course_id") Integer courseId,
-            @PathVariable("group") String group) {
-        return ResponseEntity.ok(attendanceService.getAppeals(courseId, group));
+    public ResponseEntity<List<AbsenceReasonDto>> adminSeeAppeals() {
+        return ResponseEntity.ok(attendanceService.getAppeals());
     }
 }

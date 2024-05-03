@@ -302,4 +302,12 @@ public class AttendanceService {
                 .map(AbsenceReasonDtoFactory::convert)
                 .toList();
     }
+
+    public List<AbsenceReasonDto> getAppeals() {
+
+        return absenceReasonRepository.findAllNotPermittedAppeals()
+                .stream()
+                .map(AbsenceReasonDtoFactory::convert)
+                .toList();
+    }
 }

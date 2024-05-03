@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.Set;
 
@@ -41,5 +42,11 @@ public class ExceptionHandlerService {
     @ExceptionHandler({AttendanceLimitHasBeenReachedException.class})
     public ResponseEntity<String> attendanceLimitHasBeenReachedException(AttendanceLimitHasBeenReachedException exception){
         return ResponseEntity.ok(exception.getMessage());
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<Object> handleMethodArgumentTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        String message = "Invalid parameter value: " + ex.getName() + ".";
+        return new ResponseEntity<>(message, HttpStatus.BAD_REQUEST);
     }
 }
