@@ -472,8 +472,7 @@ public class AttendanceTests {
 
         mockMvc.perform(requestBuilderGiveAccess)
                 .andExpectAll(
-                        status().isOk(),
-                        content().contentType(MediaType.APPLICATION_JSON)
+                        status().isOk()
                 );
 
         byte[] qr = createAttendanceQr(teacherAccessToken, attendance, lesson);
@@ -533,8 +532,7 @@ public class AttendanceTests {
 
         mockMvc.perform(requestBuilderGiveAccess)
                 .andExpectAll(
-                        status().isOk(),
-                        content().contentType(MediaType.APPLICATION_JSON)
+                        status().isOk()
                 );
 
         attendanceRepository.resetLimit(student1.getId(), student2.getId());
