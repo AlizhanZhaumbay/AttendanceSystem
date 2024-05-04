@@ -228,7 +228,7 @@ public class AttendanceService {
         return qrAccessToken;
     }
 
-    public String appeal(Integer attendanceRecordId, Reason reason, MultipartFile file) {
+    public String appeal(Integer attendanceRecordId, String reason, MultipartFile file) {
         if(!Objects.equals(file.getContentType(), MediaType.APPLICATION_PDF_VALUE)){
             throw new InvalidRequestBodyException(Set.of("No pdf file provided"));
         }

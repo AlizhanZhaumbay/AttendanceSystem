@@ -651,7 +651,7 @@ public class AttendanceTests {
         )
                 .file(new MockMultipartFile("file", "appeal.pdf", MediaType.APPLICATION_PDF_VALUE, new byte[]{}))
                 .header("Authorization", getHeaderAuthorization(studentAccessToken))
-                .param("reason", String.valueOf(Reason.HEALTH));
+                .param("reason", getDefaultReason());
 
         mockMvc.perform(requestBuilder)
                 .andExpectAll(
@@ -699,43 +699,6 @@ public class AttendanceTests {
     @Transactional
     @DirtiesContext
     @SneakyThrows
-    void studentAppealTestIncorrectReasonShouldFail() {
-
-        String studentAccessToken = getAccessToken(Role.STUDENT);
-        User student = getUserByAccessToken(studentAccessToken);
-
-        String group = "02-P";
-
-        Course course = saveCourse();
-        Lesson lesson = saveLesson(null, course, List.of(student), group);
-        Attendance attendance = attendanceRepository.save(getAttendance(lesson));
-        AttendanceRecord attendanceRecord =
-                attendanceRecordRepository.save(
-                        getAttendanceRecord(null, student, attendance, AttendanceStatus.ABSENCE));
-
-
-        var postfixGiveAccess = AttendanceController.STUDENT_ATTENDANCE_APPEAL
-                .replace("{attendance_record_id}", String.valueOf(attendanceRecord.getId()));
-
-        var requestBuilder = multipart(
-                BASE_URL + postfixGiveAccess
-        )
-                .file(new MockMultipartFile("file", "appeal.pdf", MediaType.APPLICATION_PDF_VALUE, new byte[]{}))
-                .header("Authorization", getHeaderAuthorization(studentAccessToken))
-                .param("reason", "dasdasdasdas")
-                .header("Authorization", getHeaderAuthorization(studentAccessToken));
-
-        mockMvc.perform(requestBuilder)
-                .andExpectAll(
-                        status().isBadRequest()
-                ).andReturn();
-
-    }
-
-    @Test
-    @Transactional
-    @DirtiesContext
-    @SneakyThrows
     void studentAppealTestIncorrectFiletypeShouldFail() {
 
         String studentAccessToken = getAccessToken(Role.STUDENT);
@@ -758,7 +721,7 @@ public class AttendanceTests {
                 BASE_URL + postfixGiveAccess
         )
                 .file(new MockMultipartFile("file","appeal.png",MediaType.IMAGE_PNG_VALUE,new byte[]{}))
-                .param("reason", String.valueOf(Reason.PERMITTED))
+                .param("reason", getDefaultReason())
                 .header("Authorization", getHeaderAuthorization(studentAccessToken));
 
         mockMvc.perform(requestBuilder)
@@ -779,7 +742,7 @@ public class AttendanceTests {
         Attendance attendance = attendanceRepository.save(getAttendance(null));
         AbsenceReason absenceReason = absenceReasonRepository.save(AbsenceReason
                 .builder()
-                .reason(Reason.HEALTH)
+                .reason(getDefaultReason())
                 .build());
         AttendanceRecord attendanceRecord = attendanceRecordRepository.save(
                 AttendanceRecord.builder()
@@ -810,7 +773,7 @@ public class AttendanceTests {
         Attendance attendance = attendanceRepository.save(getAttendance(null));
         AbsenceReason absenceReason = absenceReasonRepository.save(AbsenceReason
                 .builder()
-                .reason(Reason.HEALTH)
+                .reason(getDefaultReason())
                 .build());
         AttendanceRecord attendanceRecord = attendanceRecordRepository.save(
                 AttendanceRecord.builder()
@@ -845,13 +808,13 @@ public class AttendanceTests {
 
         AbsenceReason absenceReason1 = absenceReasonRepository.save(AbsenceReason
                 .builder()
-                .reason(Reason.HEALTH)
+                .reason("")
                 .requestedDate(LocalDateTime.now())
                 .build());
 
         AbsenceReason absenceReason2 = absenceReasonRepository.save(AbsenceReason
                 .builder()
-                .reason(Reason.HEALTH)
+                .reason(getDefaultReason())
                 .requestedDate(LocalDateTime.now())
                 .build());
 
@@ -1059,5 +1022,9 @@ public class AttendanceTests {
                         references course,
                     _limit      integer default 3 not null);
                                 """);
+    }
+
+    private String getDefaultReason(){
+        return "I couldn't attend due to family problems";
     }
 }

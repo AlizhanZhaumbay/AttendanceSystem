@@ -23,7 +23,7 @@ public class AbsenceReason {
     @OneToOne(mappedBy = "absenceReason")
     private AttendanceRecord attendanceRecord;
 
-    private Reason reason;
+    private String reason;
 
     @Enumerated(EnumType.STRING)
     private AbsenceReasonStatus status;

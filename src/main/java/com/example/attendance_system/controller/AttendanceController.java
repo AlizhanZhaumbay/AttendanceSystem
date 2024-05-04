@@ -2,7 +2,6 @@ package com.example.attendance_system.controller;
 
 import com.example.attendance_system.dto.*;
 import com.example.attendance_system.model.AbsenceReasonStatus;
-import com.example.attendance_system.model.Reason;
 import com.example.attendance_system.service.AttendanceService;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.google.zxing.WriterException;
@@ -134,7 +133,7 @@ public class AttendanceController {
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> attendanceAppeal(
             @PathVariable("attendance_record_id") Integer attendanceRecordId,
-            @RequestParam("reason") Reason reason,
+            @RequestParam("reason") String reason,
             @RequestParam("file") MultipartFile multipartFile) {
         return ResponseEntity.ok(
                 attendanceService.appeal(attendanceRecordId, reason, multipartFile));
