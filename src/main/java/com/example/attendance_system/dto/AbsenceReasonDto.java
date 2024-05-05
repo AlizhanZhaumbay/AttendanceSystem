@@ -23,5 +23,8 @@ public record AbsenceReasonDto(
         String group,
 
         @JsonProperty("file_path")
-        String filePath) {
+        String filePath,
+
+        @JsonProperty("attendance_record_id")
+        Integer attendanceRecordId) {
 }

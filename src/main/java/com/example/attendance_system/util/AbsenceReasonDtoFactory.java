@@ -20,6 +20,7 @@ public class AbsenceReasonDtoFactory {
                 .reason(absenceReason.getReason())
                 .requestedDate(absenceReason.getRequestedDate())
                 .filePath(absenceReason.getFilePath())
+                .attendanceRecordId(attendanceRecord.getId())
                 .student(String.format("%s %s", student.getName(), student.getSurname()))
                 .build();
     }
