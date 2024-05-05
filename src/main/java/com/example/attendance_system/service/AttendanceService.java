@@ -244,13 +244,12 @@ public class AttendanceService {
         checkAttendanceExists(attendance.getId());
         lessonService.isStudentWithoutLesson(attendance.getLesson().getId(), student.getId());
 
-        String fileId = UUID.randomUUID().toString();
-        String fileName = String.format("%s.pdf", fileId);
+        String fileId = String.format("%s.pdf",attendanceRecordId);
         AbsenceReason absenceReason = AbsenceReason.builder()
                 .reason(reason)
                 .requestedDate(LocalDateTime.now())
                 .attendanceRecord(attendanceRecord)
-                .filePath(s3FileSavingPrefix + fileName)
+                .filePath(s3FileSavingPrefix + fileId)
                 .build();
         absenceReasonRepository.save(absenceReason);
         attendanceRecord.setAbsenceReason(absenceReason);
@@ -281,6 +280,7 @@ public class AttendanceService {
             attendanceRecord.setAttendanceStatus(AttendanceStatus.EXCUSE_ABSENCE);
             attendanceRecord.setAttendanceType(AttendanceType.PERMITTED);
         }
+        attendanceRecordRepository.save(attendanceRecord);
         absenceReasonRepository.save(absenceReason);
     }
 

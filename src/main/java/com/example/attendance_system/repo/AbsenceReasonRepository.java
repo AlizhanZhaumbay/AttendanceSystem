@@ -17,6 +17,6 @@ public interface AbsenceReasonRepository extends JpaRepository<AbsenceReason, In
             "select id from lesson where course_id=:courseId and _group=:group)))", nativeQuery = true)
     List<AbsenceReason> findByCourseAndGroup(Integer courseId, String group);
 
-    @Query(value = "select * from absence_reason", nativeQuery = true)
+    @Query(value = "select * from absence_reason order by requested_date", nativeQuery = true)
     List<AbsenceReason> findAllAppeals();
 }
