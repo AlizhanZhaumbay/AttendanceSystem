@@ -108,7 +108,8 @@ public class AttendanceService {
         QrAccessToken qrAccessToken = validateAccessToken(ACCESS_TOKEN_KEY);
         Integer lessonId = qrAccessToken.getLesson().getId();
         Integer attendanceId = qrAccessToken.getAttendance().getId();
-
+        Lesson lesson = lessonService.getLessonById(lessonId);
+        Course course = lesson.getCourse();
 
         User student = personService.getCurrentUser();
 
@@ -121,7 +122,7 @@ public class AttendanceService {
         attendanceRecord.setAttendanceStatus(AttendanceStatus.PRESENT);
         attendanceRecord.setEntryTime(LocalTime.now());
 
-        boolean haveAccess = attendanceRecordRepository.checkStudentHaveAccessesForLesson(student.getId(), lessonId);
+        boolean haveAccess = attendanceRecordRepository.checkStudentHaveAccessesForLesson(student.getId(), course.getId().intValue());
         if (haveAccess) {
             User producer = userRepository.findProducerByConsumerId(student.getId());
             log.info("Student has accesses");
