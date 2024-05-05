@@ -1,5 +1,6 @@
 package com.example.attendance_system.controller;
 
+import com.example.attendance_system.dto.AttendanceDto;
 import com.example.attendance_system.dto.PersonDto;
 import com.example.attendance_system.model.User;
 import com.example.attendance_system.service.PersonService;
@@ -19,6 +20,8 @@ import java.util.List;
 public class PersonController {
 
     private final PersonService personService;
+    private static final String ADMIN_FETCH_STUDENTS_FROM_COURSE_GROUP =
+            "/api/v1/admin/courses/{course_id}/{group}/students";
     public static final String TEACHER_FETCH_STUDENTS = "/api/v1/teacher/courses/{course_id}/{group}/students";
 
     public static final String ADMIN_FETCH_STUDENTS = "/api/v1/admin/students";
@@ -31,6 +34,13 @@ public class PersonController {
     @GetMapping(ADMIN_FETCH_STUDENTS)
     public ResponseEntity<List<PersonDto>> getAllStudents() {
         return ResponseEntity.ok(personService.getAllStudents());
+    }
+
+    @GetMapping(ADMIN_FETCH_STUDENTS_FROM_COURSE_GROUP)
+    public ResponseEntity<List<PersonDto>> getStudentsFromCourseGroup(
+            @PathVariable("course_id") Integer courseId,
+            @PathVariable("group") String group){
+        return ResponseEntity.ok(personService.getAllStudentsByCourseGroup(courseId, group));
     }
 
     @GetMapping(TEACHER_FETCH_STUDENTS)

@@ -295,6 +295,13 @@ public class AttendanceService {
                 .toList();
     }
 
+//    public List<AttendanceDto> getAttendances(Integer courseId, String group) {
+//        return attendanceRepository.findByCourseGroup(courseId, group)
+//                .stream()
+//                .map(AttendanceDtoFactory::convert)
+//                .toList();
+//    }
+
     public List<PersonDto> getAllStudentsByCourseGroup(Integer courseId, String group) {
         User student = personService.getCurrentUser();
         courseService.isStudentWithoutCourse(courseId, student.getId());

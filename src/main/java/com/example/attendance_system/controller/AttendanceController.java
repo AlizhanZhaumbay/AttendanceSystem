@@ -34,6 +34,8 @@ public class AttendanceController {
     public static final String TEACHER_SEE_ATTENDANCE_RECORDS =
             "/api/v1/teacher/attendance/courses/{course_id}/{group}";
 
+    private static final String ADMIN_SEE_STUDENTS_ATTENDANCE_RECORDS =
+            "/api/v1/admin/attendance/courses/{course_id}/{group}/students/{student_id}";
     public static final String TEACHER_SEE_STUDENTS_ATTENDANCE_RECORDS =
             "/api/v1/teacher/attendance/courses/{course_id}/{group}/students/{student_id}";
     public static final String STUDENT_SEE_ATTENDANCE_RECORDS =
@@ -92,6 +94,15 @@ public class AttendanceController {
 
     @GetMapping(TEACHER_SEE_STUDENTS_ATTENDANCE_RECORDS)
     public ResponseEntity<List<AttendanceRecordDto>> getAttendanceRecordsByStudentForTeacher(
+            @PathVariable("course_id") Integer courseId,
+            @PathVariable("group") String group,
+            @PathVariable("student_id") Integer studentId
+    ) {
+        return ResponseEntity.ok(attendanceService.getAttendanceRecordsByCourseForStudent(courseId, group, studentId));
+    }
+
+    @GetMapping(ADMIN_SEE_STUDENTS_ATTENDANCE_RECORDS)
+    public ResponseEntity<List<AttendanceRecordDto>> getAttendanceRecordsByStudentForAdmin(
             @PathVariable("course_id") Integer courseId,
             @PathVariable("group") String group,
             @PathVariable("student_id") Integer studentId
