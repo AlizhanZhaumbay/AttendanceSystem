@@ -5,6 +5,7 @@ import com.example.attendance_system.model.AttendanceType;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Builder
 public record AttendanceRecordDto(
