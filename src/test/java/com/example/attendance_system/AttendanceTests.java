@@ -231,10 +231,10 @@ public class AttendanceTests {
                 List.of(
                         getAttendanceRecord(AttendanceType.QR, student1, attendance1, AttendanceStatus.PRESENT),
                         getAttendanceRecord(AttendanceType.MANUAL, student2, attendance1, AttendanceStatus.PRESENT),
-                        getAttendanceRecord(null, student3, attendance1, AttendanceStatus.ABSENCE),
+                        getAttendanceRecord(null, student3, attendance1, AttendanceStatus.ABSENT),
 
-                        getAttendanceRecord(null, student1, attendance2, AttendanceStatus.ABSENCE),
-                        getAttendanceRecord(null, student2, attendance2, AttendanceStatus.ABSENCE),
+                        getAttendanceRecord(null, student1, attendance2, AttendanceStatus.ABSENT),
+                        getAttendanceRecord(null, student2, attendance2, AttendanceStatus.ABSENT),
                         getAttendanceRecord(AttendanceType.QR, student3, attendance2, AttendanceStatus.PRESENT),
 
 
@@ -286,13 +286,13 @@ public class AttendanceTests {
                 List.of(
                         getAttendanceRecord(AttendanceType.QR, student1, attendance1, AttendanceStatus.PRESENT),
                         getAttendanceRecord(AttendanceType.MANUAL, student2, attendance1, AttendanceStatus.PRESENT),
-                        getAttendanceRecord(null, student3, attendance1, AttendanceStatus.ABSENCE),
+                        getAttendanceRecord(null, student3, attendance1, AttendanceStatus.ABSENT),
 
-                        getAttendanceRecord(null, student1, attendance2, AttendanceStatus.ABSENCE),
-                        getAttendanceRecord(null, student2, attendance2, AttendanceStatus.ABSENCE),
+                        getAttendanceRecord(null, student1, attendance2, AttendanceStatus.ABSENT),
+                        getAttendanceRecord(null, student2, attendance2, AttendanceStatus.ABSENT),
                         getAttendanceRecord(AttendanceType.QR, student3, attendance2, AttendanceStatus.PRESENT),
 
-                        getAttendanceRecord(null, student3, attendance3, AttendanceStatus.ABSENCE),
+                        getAttendanceRecord(null, student3, attendance3, AttendanceStatus.ABSENT),
                         getAttendanceRecord(null, student2, attendance3, AttendanceStatus.PRESENT)));
 
 
@@ -337,13 +337,12 @@ public class AttendanceTests {
                 List.of(
                         getAttendanceRecord(AttendanceType.QR, student1, attendance1, AttendanceStatus.PRESENT),
                         getAttendanceRecord(AttendanceType.MANUAL, student2, attendance1, AttendanceStatus.PRESENT),
-                        getAttendanceRecord(null, student3, attendance1, AttendanceStatus.ABSENCE),
+                        getAttendanceRecord(null, student3, attendance1, AttendanceStatus.ABSENT),
 
-                        getAttendanceRecord(null, student1, attendance2, AttendanceStatus.ABSENCE),
-                        getAttendanceRecord(null, student2, attendance2, AttendanceStatus.ABSENCE),
+                        getAttendanceRecord(null, student1, attendance2, AttendanceStatus.ABSENT),
+                        getAttendanceRecord(null, student2, attendance2, AttendanceStatus.ABSENT),
                         getAttendanceRecord(AttendanceType.QR, student3, attendance2, AttendanceStatus.PRESENT),
-
-                        getAttendanceRecord(null, student3, attendance3, AttendanceStatus.ABSENCE),
+                        getAttendanceRecord(null, student3, attendance3, AttendanceStatus.ABSENT),
                         getAttendanceRecord(null, student2, attendance3, AttendanceStatus.PRESENT)));
 
 
@@ -416,11 +415,11 @@ public class AttendanceTests {
                         getAttendanceRecord(AttendanceType.QR, student1, attendance1, AttendanceStatus.PRESENT),
                         getAttendanceRecord(AttendanceType.MANUAL, student2, attendance1, AttendanceStatus.PRESENT),
 
-                        getAttendanceRecord(null, student1, attendance2, AttendanceStatus.ABSENCE),
+                        getAttendanceRecord(null, student1, attendance2, AttendanceStatus.ABSENT),
                         getAttendanceRecord(AttendanceType.MANUAL, student2, attendance2, AttendanceStatus.PRESENT),
 
-                        getAttendanceRecord(null, student1, attendance3, AttendanceStatus.ABSENCE),
-                        getAttendanceRecord(null, student2, attendance3, AttendanceStatus.ABSENCE)
+                        getAttendanceRecord(null, student1, attendance3, AttendanceStatus.ABSENT),
+                        getAttendanceRecord(null, student2, attendance3, AttendanceStatus.ABSENT)
                 ));
 
 
@@ -640,7 +639,7 @@ public class AttendanceTests {
         Attendance attendance = attendanceRepository.save(getAttendance(lesson));
         AttendanceRecord attendanceRecord =
                 attendanceRecordRepository.save(
-                        getAttendanceRecord(null, student, attendance, AttendanceStatus.ABSENCE));
+                        getAttendanceRecord(null, student, attendance, AttendanceStatus.ABSENT));
 
 
         var postfixGiveAccess = AttendanceController.STUDENT_ATTENDANCE_APPEAL
@@ -677,7 +676,7 @@ public class AttendanceTests {
         Attendance attendance = attendanceRepository.save(getAttendance(lesson));
         AttendanceRecord attendanceRecord =
                 attendanceRecordRepository.save(
-                        getAttendanceRecord(null, student, attendance, AttendanceStatus.ABSENCE));
+                        getAttendanceRecord(null, student, attendance, AttendanceStatus.ABSENT));
 
 
         var postfixGiveAccess = AttendanceController.STUDENT_ATTENDANCE_APPEAL
@@ -711,7 +710,7 @@ public class AttendanceTests {
         Attendance attendance = attendanceRepository.save(getAttendance(lesson));
         AttendanceRecord attendanceRecord =
                 attendanceRecordRepository.save(
-                        getAttendanceRecord(null, student, attendance, AttendanceStatus.ABSENCE));
+                        getAttendanceRecord(null, student, attendance, AttendanceStatus.ABSENT));
 
 
         var postfixGiveAccess = AttendanceController.STUDENT_ATTENDANCE_APPEAL
@@ -747,7 +746,7 @@ public class AttendanceTests {
         AttendanceRecord attendanceRecord = attendanceRecordRepository.save(
                 AttendanceRecord.builder()
                         .absenceReason(absenceReason)
-                        .attendanceStatus(AttendanceStatus.ABSENCE)
+                        .attendanceStatus(AttendanceStatus.ABSENT)
                         .attendance(attendance)
                         .student(student)
                         .build());
@@ -778,7 +777,7 @@ public class AttendanceTests {
         AttendanceRecord attendanceRecord = attendanceRecordRepository.save(
                 AttendanceRecord.builder()
                         .absenceReason(absenceReason)
-                        .attendanceStatus(AttendanceStatus.ABSENCE)
+                        .attendanceStatus(AttendanceStatus.ABSENT)
                         .attendance(attendance)
                         .student(student)
                         .build());
@@ -819,13 +818,12 @@ public class AttendanceTests {
                 .build());
 
         AttendanceRecord attendanceRecord1 =
-                attendanceRecordRepository.save(getAttendanceRecord(null, student1, attendance, AttendanceStatus.ABSENCE));
+                attendanceRecordRepository.save(getAttendanceRecord(null, student1, attendance, AttendanceStatus.ABSENT));
         attendanceRecord1.setAbsenceReason(absenceReason1);
 
         absenceReason1.setAttendanceRecord(attendanceRecord1);
-
         AttendanceRecord attendanceRecord2 =
-                attendanceRecordRepository.save(getAttendanceRecord(null, student1, attendance, AttendanceStatus.ABSENCE));
+                attendanceRecordRepository.save(getAttendanceRecord(null, student1, attendance, AttendanceStatus.ABSENT));
         attendanceRecord2.setAbsenceReason(absenceReason2);
         absenceReason2.setAttendanceRecord(attendanceRecord2);
 

@@ -74,7 +74,7 @@ public class AttendanceService {
                                     .attendance(attendance)
                                     .student(student)
                                     .group(lesson.getGroup())
-                                    .attendanceStatus(AttendanceStatus.ABSENCE)
+                                    .attendanceStatus(AttendanceStatus.ABSENT)
                                     .build()
                     ));
         }
