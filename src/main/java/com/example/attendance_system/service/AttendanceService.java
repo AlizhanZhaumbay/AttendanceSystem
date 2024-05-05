@@ -293,17 +293,9 @@ public class AttendanceService {
         return personService.getAllStudentsByCourseGroup(courseId, group, student.getId());
     }
 
-    public List<AbsenceReasonDto> getAppeals(Integer courseId, String group) {
-
-        return absenceReasonRepository.findByCourseAndGroup(courseId, group)
-                .stream()
-                .map(AbsenceReasonDtoFactory::convert)
-                .toList();
-    }
-
     public List<AbsenceReasonDto> getAppeals() {
 
-        return absenceReasonRepository.findAllNotPermittedAppeals()
+        return absenceReasonRepository.findAllAppeals()
                 .stream()
                 .map(AbsenceReasonDtoFactory::convert)
                 .toList();

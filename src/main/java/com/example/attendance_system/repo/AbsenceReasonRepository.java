@@ -1,6 +1,5 @@
 package com.example.attendance_system.repo;
 
-import com.example.attendance_system.dto.AbsenceReasonDto;
 import com.example.attendance_system.model.AbsenceReason;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -18,6 +17,6 @@ public interface AbsenceReasonRepository extends JpaRepository<AbsenceReason, In
             "select id from lesson where course_id=:courseId and _group=:group)))", nativeQuery = true)
     List<AbsenceReason> findByCourseAndGroup(Integer courseId, String group);
 
-    @Query(value = "select * from absence_reason where status IS NULL", nativeQuery = true)
-    List<AbsenceReason> findAllNotPermittedAppeals();
+    @Query(value = "select * from absence_reason", nativeQuery = true)
+    List<AbsenceReason> findAllAppeals();
 }
