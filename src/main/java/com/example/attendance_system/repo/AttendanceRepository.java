@@ -25,7 +25,7 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Integer>
 
     @Query(value = "select * from attendance where lesson_id in (" +
             "select id from lesson " +
-            "where _group=:group and course_id=:courseId and teacher_id=:teacherId)", nativeQuery = true)
+            "where _group=:group and course_id=:courseId and teacher_id=:teacherId) order by date", nativeQuery = true)
     List<Attendance> findByCourseGroupAndTeacher(Integer courseId, String group, Integer teacherId);
 
     @Query(value = "SELECT CASE WHEN _limit <= 0 THEN true ELSE false END FROM attendance_permission " +

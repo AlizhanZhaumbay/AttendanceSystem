@@ -18,6 +18,8 @@ public record AttendanceRecordDto(
 
         String designatedStudent,
 
-        AttendanceType attendanceType
+        AttendanceType attendanceType,
+
+        LocalTime entryTime
 ) {
 }

@@ -271,6 +271,11 @@ public class AttendanceService {
 
         AbsenceReason absenceReason = attendanceRecord.getAbsenceReason();
         absenceReason.setStatus(status);
+
+        if(status.equals(AbsenceReasonStatus.APPROVED)){
+            attendanceRecord.setAttendanceStatus(AttendanceStatus.EXCUSE_ABSENCE);
+            attendanceRecord.setAttendanceType(AttendanceType.PERMITTED);
+        }
         absenceReasonRepository.save(absenceReason);
     }
 

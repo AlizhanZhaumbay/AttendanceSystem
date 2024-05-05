@@ -24,23 +24,13 @@ public interface AttendanceRecordRepository extends JpaRepository<AttendanceReco
 
     @Query(value = "select * from attendance_record where attendance_id in " +
             "(select id from attendance where lesson_id in (" +
-            "select id from lesson where course_id=:courseId and _group=:group))", nativeQuery = true)
+            "select id from lesson where course_id=:courseId and _group=:group) order by date)", nativeQuery = true)
     List<AttendanceRecord> findByCourseIdAndGroup(Integer courseId, String group);
 
     @Query(value = "select * from attendance_record where student_id=:studentId and attendance_id in " +
             "(select id from attendance where lesson_id in (" +
-            "select id from lesson where course_id=:courseId and _group=:group))",nativeQuery = true)
+            "select id from lesson where course_id=:courseId and _group=:group) order by date)",nativeQuery = true)
     List<AttendanceRecord> findByCourseGroupAndStudent(Integer courseId, String group, Integer studentId);
 
     List<AttendanceRecord> findByAttendance(Attendance attendance);
-
-    @Query(value = "select * from attendance_record where attendance_id in (" +
-            "select id from attendance where lesson_id in (" +
-            "select id from lesson where course_id=:courseId))", nativeQuery = true)
-    List<AttendanceRecord> findByCourseIdAndGroup(Integer courseId);
-
-    @Query(value = "select * from attendance_record where attendance_id in (" +
-            "select id from attendance where lesson_id in (" +
-            "select id from lesson where course_id=:courseId and teacher_id=:teacherId))",nativeQuery = true)
-    List<AttendanceRecord> findByCourseAndTeacher(Integer courseId, Integer teacherId);
 }

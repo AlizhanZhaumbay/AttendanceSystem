@@ -4,6 +4,8 @@ import com.example.attendance_system.dto.AttendanceRecordDto;
 import com.example.attendance_system.model.AttendanceRecord;
 import com.example.attendance_system.model.Person;
 
+import java.time.LocalTime;
+
 public class AttendanceRecordDtoFactory {
     public static AttendanceRecordDto convert(AttendanceRecord attendanceRecord) {
         Person student = attendanceRecord.getStudent().getPerson();
@@ -14,6 +16,7 @@ public class AttendanceRecordDtoFactory {
                         .attendanceStatus(attendanceRecord.getAttendanceStatus())
                         .attendanceType(attendanceRecord.getAttendanceType())
                         .courseGroup(attendanceRecord.getGroup())
+                        .entryTime(attendanceRecord.getEntryTime())
                         .time(attendanceRecord.getAttendance().getLocalDateTime());
 
         if(attendanceRecord.getDesignatedUser() != null){
