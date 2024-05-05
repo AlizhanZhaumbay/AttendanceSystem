@@ -105,7 +105,7 @@ public class CourseTests {
         Course course = saveCourse();
         courseRepository.save(course);
 
-        var requestBuilder = get(BASE_URL + "/admin/courses")
+        var requestBuilder = get(BASE_URL + CourseController.ADMIN_SEE_COURSES)
                 .header("Authorization", "Bearer " + accessToken);
 
         mockMvc.perform(requestBuilder)
@@ -145,7 +145,7 @@ public class CourseTests {
         lessonRepository.saveAll(lessonsForTeacher1);
         lessonRepository.saveAll(lessonsForTeacher2);
 
-        var requestBuilder = get(BASE_URL + "/teacher/courses")
+        var requestBuilder = get(BASE_URL + CourseController.TEACHER_SEE_COURSES)
                 .header("Authorization", "Bearer " + accessTokenTeacher2);
 
         mockMvc.perform(requestBuilder)

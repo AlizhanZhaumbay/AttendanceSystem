@@ -11,6 +11,7 @@ import com.example.attendance_system.repo.*;
 import com.example.attendance_system.util.*;
 import com.google.zxing.WriterException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,7 @@ import java.util.*;
 
 @Service
 @RequiredArgsConstructor
+@Log4j2
 public class AttendanceService {
     private final QrCodeService qrCodeService;
     private final LessonService lessonService;
@@ -118,17 +120,17 @@ public class AttendanceService {
         attendanceRecord.setAttendanceType(AttendanceType.QR);
         attendanceRecord.setAttendanceStatus(AttendanceStatus.PRESENT);
         attendanceRecord.setEntryTime(LocalTime.now());
-        attendanceRecordRepository.saveAndFlush(attendanceRecord);
 
         boolean haveAccess = attendanceRecordRepository.checkStudentHaveAccessesForLesson(student.getId(), lessonId);
         if (haveAccess) {
             User producer = userRepository.findProducerByConsumerId(student.getId());
-
+            log.info("Student has accesses");
             boolean hasLimitBeenReached = attendanceRepository.checkLimitReached(producer.getId(), student.getId());
 
             if(hasLimitBeenReached){
                 throw new AttendanceLimitHasBeenReachedException("Unable to take attendance for designated user, limit has been reached");
             }
+            log.info("Limit has no reached");
             AttendanceRecord attendanceRecordForProducer = attendanceRecordRepository
                     .findByAttendanceIdAndStudentId(attendanceId, producer.getId());
 
@@ -136,10 +138,11 @@ public class AttendanceService {
             attendanceRecordForProducer.setEntryTime(LocalTime.now());
             attendanceRecordForProducer.setAttendanceType(AttendanceType.QR);
             attendanceRecordForProducer.setDesignatedUser(student);
-            attendanceRecordRepository.saveAndFlush(attendanceRecordForProducer);
 
             attendanceRepository.decreaseLimit(producer.getId(), student.getId());
+            attendanceRecordRepository.save(attendanceRecordForProducer);
         }
+        attendanceRecordRepository.saveAndFlush(attendanceRecord);
         return student.getId();
     }
 
@@ -241,11 +244,12 @@ public class AttendanceService {
         lessonService.isStudentWithoutLesson(attendance.getLesson().getId(), student.getId());
 
         String fileId = UUID.randomUUID().toString();
+        String fileName = String.format("%s.pdf", fileId);
         AbsenceReason absenceReason = AbsenceReason.builder()
                 .reason(reason)
                 .requestedDate(LocalDateTime.now())
                 .attendanceRecord(attendanceRecord)
-                .filePath(s3FileSavingPrefix + fileId)
+                .filePath(s3FileSavingPrefix + fileName)
                 .build();
         absenceReasonRepository.save(absenceReason);
         attendanceRecord.setAbsenceReason(absenceReason);

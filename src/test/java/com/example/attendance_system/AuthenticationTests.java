@@ -1,5 +1,6 @@
 package com.example.attendance_system;
 
+import com.example.attendance_system.auth.AuthenticationController;
 import com.example.attendance_system.auth.AuthenticationRequest;
 import com.example.attendance_system.auth.RegisterRequest;
 import com.example.attendance_system.model.Role;
@@ -28,15 +29,14 @@ public class AuthenticationTests {
     MockMvc mockMvc;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final String BASE_URL = "http://localhost:8080/api/v1/auth";
+    private static final String BASE_URL = "http://localhost:8080";
 
     @Test
     @Transactional
     @SneakyThrows
-    @DisplayName("Post request should send accessToken with status 200")
     void handleAuthentication_ReturnsValidResponseAccessToken() {
-        var login = "/login";
-        var register = "/register";
+        var login = AuthenticationController.USER_SIGN_IN;
+        var register = AuthenticationController.USER_SIGN_UP;
 
         RegisterRequest registerRequest =
                 new RegisterRequest("login", "password", Role.STUDENT, null);
@@ -64,4 +64,39 @@ public class AuthenticationTests {
                 );
 
     }
+
+    @Test
+    @Transactional
+    @SneakyThrows
+    void handleAuthenticationWithIncorrectPassword_ReturnsForbidden() {
+        var login = AuthenticationController.USER_SIGN_IN;
+        var register = AuthenticationController.USER_SIGN_UP;
+
+        RegisterRequest registerRequest =
+                new RegisterRequest("login", "password", Role.STUDENT, null);
+        AuthenticationRequest authenticationRequest = new AuthenticationRequest(
+                "login", "anotherPassword"
+        );
+
+
+        var registerRequestBuilder = post(BASE_URL + register)
+                .content(objectMapper.writeValueAsString(registerRequest))
+                .contentType(MediaType.APPLICATION_JSON);
+
+        mockMvc.perform(registerRequestBuilder).andExpectAll(
+                status().isOk(),
+                content().contentType(MediaType.APPLICATION_JSON)
+        ).andReturn().getResponse();
+
+        var loginRequestBuilder = post(BASE_URL + login)
+                .content(objectMapper.writeValueAsString(authenticationRequest))
+                .contentType(MediaType.APPLICATION_JSON);
+        mockMvc.perform(loginRequestBuilder)
+                .andExpectAll(
+                        status().isForbidden()
+                );
+
+    }
+
+
 }
