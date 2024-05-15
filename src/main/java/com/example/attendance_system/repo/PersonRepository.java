@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -40,4 +41,13 @@ public interface PersonRepository extends JpaRepository<Person, Integer> {
             "where id in (select student_id from enroll where lesson_id in (" +
             "select id from lesson where course_id=:courseId and _group=:group)) and id!=:exceptionalStudentId)", nativeQuery = true)
     List<Person> findStudentsByCourseGroup(Integer courseId, String group, Integer exceptionalStudentId);
+
+
+    @Query(value = "select * from person where id in (select consumer_id from attendance_permission where course_id=:courseId and " +
+            "producer_id=:studentId)", nativeQuery = true)
+    List<Person> findAllConsumersByProducerId(Integer courseId, Integer studentId);
+
+    @Query(value = "select * from person where id in (select producer_id from attendance_permission where course_id=:courseId and " +
+            "consumer_id=:studentId)", nativeQuery = true)
+    List<Person> findAllProducersByConsumerId(Integer courseId, Integer studentId);
 }

@@ -34,7 +34,7 @@ public class AttendanceController {
     public static final String TEACHER_SEE_ATTENDANCE_RECORDS =
             "/api/v1/teacher/attendance/courses/{course_id}/{group}";
 
-    private static final String ADMIN_SEE_STUDENTS_ATTENDANCE_RECORDS =
+    public static final String ADMIN_SEE_STUDENTS_ATTENDANCE_RECORDS =
             "/api/v1/admin/attendance/courses/{course_id}/{group}/students/{student_id}";
     public static final String TEACHER_SEE_STUDENTS_ATTENDANCE_RECORDS =
             "/api/v1/teacher/attendance/courses/{course_id}/{group}/students/{student_id}";
@@ -57,6 +57,12 @@ public class AttendanceController {
 
     public static final String ADMIN_SEE_ABSENCE_APPEALS =
             "/api/v1/admin/absence_reasons";
+
+    public static final String STUDENT_LIST_OF_CONSUMERS =
+            "/api/v1/student/courses/{course_id}/consumers";
+
+    public static final String STUDENT_LIST_OF_PRODUCERS =
+            "/api/v1/student/courses/{course_id}/producers";
 
 
     @PostMapping(path = TEACHER_TAKE_ATTENDANCE_BY_QR, produces = MediaType.IMAGE_JPEG_VALUE)
@@ -165,5 +171,15 @@ public class AttendanceController {
     @GetMapping(ADMIN_SEE_ABSENCE_APPEALS)
     public ResponseEntity<List<AbsenceReasonDto>> adminSeeAppeals() {
         return ResponseEntity.ok(attendanceService.getAppeals());
+    }
+
+    @GetMapping(STUDENT_LIST_OF_CONSUMERS)
+    public ResponseEntity<List<PersonDto>> getConsumers(@PathVariable("course_id") Integer courseId){
+        return ResponseEntity.ok(attendanceService.getAllConsumersByCourseAndStudent(courseId));
+    }
+
+    @GetMapping(STUDENT_LIST_OF_PRODUCERS)
+    public ResponseEntity<List<PersonDto>> getProducers(@PathVariable("course_id") Integer courseId){
+        return ResponseEntity.ok(attendanceService.getAllProducersByCourseAndStudent(courseId));
     }
 }

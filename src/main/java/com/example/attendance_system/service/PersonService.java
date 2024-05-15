@@ -1,5 +1,6 @@
 package com.example.attendance_system.service;
 
+import com.example.attendance_system.model.Course;
 import com.example.attendance_system.repo.PersonRepository;
 import com.example.attendance_system.util.ExceptionMessage;
 import com.example.attendance_system.util.PersonDtoFactory;
@@ -11,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.List;
 
 @Service
@@ -121,5 +123,13 @@ public class PersonService {
 
     public List<PersonDto> getAllStudentsByCourseGroup(Integer courseId, String group) {
         return getAllStudentsByCourseGroup(courseId, group, 0);
+    }
+
+    public List<Person> getAllConsumersByCourse(Integer courseId, Integer id) {
+        return personRepository.findAllConsumersByProducerId(courseId, id);
+    }
+
+    public List<Person> getAllProducersByCourse(Integer courseId, Integer id) {
+        return personRepository.findAllProducersByConsumerId(courseId, id);
     }
 }

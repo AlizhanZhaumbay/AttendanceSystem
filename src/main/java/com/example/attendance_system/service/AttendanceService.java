@@ -227,7 +227,7 @@ public class AttendanceService {
                         exception));
         if (qrAccessToken.getExpiration().isBefore(LocalDateTime.now())) {
             qrAccessTokenRepository.deleteById(accessToken);
-            throw new InvalidAccessException(exception);
+            throw new AttendanceNotFoundException(exception);
         }
         return qrAccessToken;
     }
@@ -315,6 +315,28 @@ public class AttendanceService {
         return absenceReasonRepository.findAllAppeals()
                 .stream()
                 .map(AbsenceReasonDtoFactory::convert)
+                .toList();
+    }
+
+    public List<PersonDto> getAllConsumersByCourseAndStudent(Integer courseId) {
+        User student = personService.getCurrentUser();
+
+        courseService.isStudentWithoutCourse(courseId, student.getId());
+
+        return personService.getAllConsumersByCourse(courseId, student.getId())
+                .stream()
+                .map(PersonDtoFactory::convert)
+                .toList();
+    }
+
+    public List<PersonDto> getAllProducersByCourseAndStudent(Integer courseId) {
+        User student = personService.getCurrentUser();
+
+        courseService.isStudentWithoutCourse(courseId, student.getId());
+
+        return personService.getAllProducersByCourse(courseId, student.getId())
+                .stream()
+                .map(PersonDtoFactory::convert)
                 .toList();
     }
 }
